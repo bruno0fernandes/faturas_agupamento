@@ -17,12 +17,12 @@ const TIPOS_DESPESA = [
 ];
 const CABECALHO = [
   'ID', 'Data de carregamento', 'Data da fatura', 'Pago por', 'Secção', 'Detalhe secção (Outros)',
-  'Atividade', 'Tipo de despesa', 'Detalhe tipo (Outros)', 'Valor (€)', 'NIF do emissor', 'Fatura',
+  'Atividade', 'Tipo de despesa', 'Detalhe tipo (Outros)', 'Descrição', 'Valor (€)', 'NIF do emissor', 'Fatura',
 ];
 const COL_SECCAO = 'E';
 const COL_TIPO = 'H';
-const COL_VALOR = 'J';
-const COL_FATURA = 12;
+const COL_VALOR = 'K';
+const COL_FATURA = 13;
 
 const NOME_PASTA_RAIZ = 'Faturas do Agrupamento';
 const NOME_FOLHA = 'Faturas do Agrupamento';
@@ -95,6 +95,7 @@ function testeSubmissao() {
     atividade: 'Teste',
     tipoDespesa: 'Outros',
     tipoOutro: 'Teste',
+    descricao: 'Submissão de teste',
     dataFatura: Utilities.formatDate(new Date(), FUSO, 'yyyy-MM-dd'),
     nif: '',
     ficheiro: { base64: png, mimeType: 'image/png' },
@@ -202,6 +203,7 @@ function submeter(p) {
       texto(d.atividade),
       d.tipoDespesa,
       texto(d.tipoOutro),
+      texto(d.descricao),
       d.valor,
       texto(d.nif),
       '',
@@ -241,6 +243,8 @@ function validar(p) {
   const tipoOutro = tipoDespesa === 'Outros' ? str(p.tipoOutro, 200) : '';
   if (tipoDespesa === 'Outros' && !tipoOutro) throw new ErroValidacao('Especifica o tipo de despesa "Outros".');
 
+  const descricao = str(p.descricao, 1000);
+
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str(p.dataFatura, 10));
   if (!m) throw new ErroValidacao('Data da fatura inválida.');
   const dataFatura = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
@@ -264,7 +268,7 @@ function validar(p) {
   if (!bytes.length) throw new ErroValidacao('Falta a foto da fatura.');
   if (bytes.length > TAMANHO_MAX_FICHEIRO) throw new ErroValidacao('Ficheiro demasiado grande (máx. 10 MB).');
 
-  return { id, pagoPor, seccao, seccaoOutro, valor, atividade, tipoDespesa, tipoOutro, dataFatura, nif, mimeType, bytes };
+  return { id, pagoPor, seccao, seccaoOutro, valor, atividade, tipoDespesa, tipoOutro, descricao, dataFatura, nif, mimeType, bytes };
 }
 
 /** Impede que texto começado por "=", "+", etc. seja interpretado como fórmula. */
@@ -295,9 +299,11 @@ function obterFolhaAno(ss, ano) {
     const cabecalho = existente.getRange(1, 1, 1, existente.getLastColumn()).getValues()[0];
     if (cabecalho.join('|') === CABECALHO.join('|')) return existente;
     // Aba criada com uma versão antiga das colunas: arquiva-a e cria uma nova
-    existente.setName(ano + ' (antigo)');
+    let sufixo = ' (antigo)';
+    for (let n = 2; ss.getSheetByName(ano + sufixo); n++) sufixo = ' (antigo ' + n + ')';
+    existente.setName(ano + sufixo);
     const resumoAntigo = ss.getSheetByName('Resumo ' + ano);
-    if (resumoAntigo) resumoAntigo.setName('Resumo ' + ano + ' (antigo)');
+    if (resumoAntigo) resumoAntigo.setName('Resumo ' + ano + sufixo);
   }
 
   const folha = ss.insertSheet(ano, 0);
@@ -307,9 +313,10 @@ function obterFolhaAno(ss, ano) {
   folha.getRange('B2:B').setNumberFormat('dd/mm/yyyy hh:mm');
   folha.getRange('C2:C').setNumberFormat('dd/mm/yyyy');
   folha.getRange(COL_VALOR + '2:' + COL_VALOR).setNumberFormat('#,##0.00 "€"');
-  folha.getRange('K2:K').setNumberFormat('@');
+  folha.getRange('L2:L').setNumberFormat('@');
   folha.hideColumns(1);
   folha.setColumnWidth(7, 220);
+  folha.setColumnWidth(10, 280);
 
   const resumo = ss.insertSheet('Resumo ' + ano, 0);
   escreverResumo(resumo, ano, 1, 'Secção', SECCOES, COL_SECCAO);

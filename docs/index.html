@@ -227,6 +227,11 @@
             <input id="tipo-outro" type="text" maxlength="200" placeholder="Especifica o tipo de despesa">
             <p id="erro-tipo-outro" class="erro-campo" hidden></p>
           </div>
+
+          <div class="campo">
+            <label for="descricao">Descrição <span class="opcional">(opcional)</span></label>
+            <textarea id="descricao" maxlength="1000" placeholder="Notas sobre o gasto (o que se comprou, para quê…)"></textarea>
+          </div>
         </div>
 
         <div class="cartao">
@@ -592,7 +597,8 @@ function validarFormulario() {
 
   if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
   return ok ? { valor, seccao, seccaoOutro: seccao === 'Outros' ? seccaoOutro : '',
-    atividade, tipoDespesa, tipoOutro: tipoDespesa === 'Outros' ? tipoOutro : '', pagoPor, dataFatura, nif } : null;
+    atividade, tipoDespesa, tipoOutro: tipoDespesa === 'Outros' ? tipoOutro : '',
+    descricao: $('descricao').value.trim(), pagoPor, dataFatura, nif } : null;
 }
 
 // --- Confirmação e envio -------------------------------------------------------
@@ -614,6 +620,7 @@ $('form-fatura').addEventListener('submit', ev => {
     ['Quem pagou', escapar(dados.pagoPor)],
     ['Data da fatura', formatarData(dados.dataFatura)],
   ];
+  if (dados.descricao) linhas.splice(4, 0, ['Descrição', escapar(dados.descricao)]);
   if (dados.nif) linhas.push(['NIF do emissor', escapar(dados.nif)]);
   if (estado.ficheiro.mimeType === 'application/pdf') linhas.push(['Ficheiro', 'PDF anexado']);
   $('conf-tabela').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
