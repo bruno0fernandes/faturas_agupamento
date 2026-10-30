@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Faturas do Agrupamento</title>
+  <meta name="theme-color" content="#2f6b3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Faturas">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --verde: #2f6b3a;
+      --verde-escuro: #234f2b;
+      --verde-claro: #e8f0e8;
+      --fundo: #f5f6f4;
+      --cartao: #ffffff;
+      --texto: #1d211e;
+      --suave: #5d665f;
+      --borda: #cfd5d0;
+      --erro: #b3261e;
+      --erro-fundo: #fdecea;
+      --aviso-fundo: #fff4d6;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 17px;
+      line-height: 1.4;
+      color: var(--texto);
+      background: var(--fundo);
+    }
+    header {
+      background: var(--verde);
+      color: #fff;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+      font-weight: 600;
+      font-size: 19px;
+    }
+    main { max-width: 520px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
+    .ecra[hidden] { display: none; }
+    .cartao { background: var(--cartao); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    label, .rotulo { display: block; font-weight: 600; margin-bottom: 6px; }
+    .opcional { font-weight: 400; color: var(--suave); }
+    .ajuda { color: var(--suave); font-size: 14px; margin: 6px 0 0; }
+    .campo { margin-bottom: 18px; }
+    .campo:last-child { margin-bottom: 0; }
+    input[type=text], input[type=password], input[type=date], textarea {
+      width: 100%;
+      font: inherit;
+      font-size: 17px; /* >=16px evita o zoom automático no iPhone */
+      padding: 12px;
+      border: 1.5px solid var(--borda);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--texto);
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 48px;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    input:focus, textarea:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px var(--verde-claro); }
+    .invalido { border-color: var(--erro) !important; }
+    .erro-campo { color: var(--erro); font-size: 14px; margin: 6px 0 0; }
+    .valor { position: relative; }
+    .valor input { padding-right: 40px; font-size: 22px; font-weight: 600; }
+    .valor span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--suave); }
+
+    button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .btn {
+      display: block; width: 100%;
+      min-height: 52px; padding: 12px 16px;
+      border-radius: 12px; border: none;
+      font-size: 18px; font-weight: 600;
+      background: var(--verde); color: #fff;
+    }
+    .btn:active { background: var(--verde-escuro); }
+    .btn:disabled { opacity: .5; }
+    .btn-sec { background: var(--verde-claro); color: var(--verde-escuro); }
+    .btn-sec:active { background: #d5e3d5; }
+    .botoes { display: grid; gap: 10px; margin-top: 16px; }
+    .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .link { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 15px; padding: 12px; display: block; margin: 8px auto 0; }
+
+    .seccoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .seccoes input { position: absolute; opacity: 0; pointer-events: none; }
+    .seccoes label {
+      margin: 0; font-weight: 500;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      min-height: 50px; padding: 8px;
+      border: 1.5px solid var(--borda); border-radius: 10px; background: #fff;
+    }
+    .seccoes input:checked + label { border-color: var(--verde); background: var(--verde); color: #fff; font-weight: 600; }
+    .seccoes input:focus-visible + label { box-shadow: 0 0 0 3px var(--verde-claro); }
+    .seccoes.invalido label { border-color: var(--erro); }
+
+    .foto-vazia {
+      border: 2px dashed var(--borda); border-radius: 12px; padding: 14px;
+      text-align: center; color: var(--suave);
+    }
+    .foto-vazia.invalido { border-color: var(--erro); }
+    .foto-preview { text-align: center; }
+    .foto-preview img { max-width: 100%; max-height: 260px; border-radius: 10px; display: block; margin: 0 auto 10px; }
+    .foto-pdf { padding: 20px; background: var(--verde-claro); border-radius: 10px; margin-bottom: 10px; word-break: break-all; }
+    .ficheiro-oculto { display: none; }
+
+    .alerta { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+    .alerta-erro { background: var(--erro-fundo); color: var(--erro); }
+    .alerta-aviso { background: var(--aviso-fundo); color: #6b4e00; }
+
+    .resumo { width: 100%; border-collapse: collapse; }
+    .resumo th { text-align: left; font-weight: 500; color: var(--suave); padding: 8px 10px 8px 0; vertical-align: top; width: 38%; }
+    .resumo td { padding: 8px 0; word-break: break-word; }
+    .resumo tr + tr th, .resumo tr + tr td { border-top: 1px solid #eceeec; }
+    .resumo .grande { font-size: 24px; font-weight: 700; }
+    .resumo-foto { max-width: 100%; max-height: 180px; border-radius: 10px; display: block; margin: 0 auto 12px; }
+
+    .sucesso { text-align: center; padding: 28px 16px; }
+    .sucesso .visto {
+      width: 72px; height: 72px; border-radius: 50%; background: var(--verde);
+      color: #fff; font-size: 40px; line-height: 72px; margin: 0 auto 16px;
+    }
+
+    .carregar {
+      position: fixed; inset: 0; background: rgba(255,255,255,.85);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; font-weight: 600; z-index: 10;
+    }
+    .carregar[hidden] { display: none; }
+    .roda {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 4px solid var(--verde-claro); border-top-color: var(--verde);
+      animation: girar .9s linear infinite;
+    }
+    @keyframes girar { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>Faturas do Agrupamento</header>
+
+  <main>
+    <!-- PIN -->
+    <section id="ecra-pin" class="ecra" hidden>
+      <form id="form-pin" class="cartao" novalidate>
+        <h2>Entrar</h2>
+        <div class="campo">
+          <label for="pin">PIN do agrupamento</label>
+          <input id="pin" type="password" inputmode="numeric" autocomplete="off" required>
+          <p id="erro-pin" class="erro-campo" hidden></p>
+        </div>
+        <div class="botoes"><button class="btn" type="submit">Entrar</button></div>
+      </form>
+    </section>
+
+    <!-- Formulário -->
+    <section id="ecra-form" class="ecra" hidden>
+      <form id="form-fatura" novalidate>
+        <div id="erro-geral" class="alerta alerta-erro" hidden></div>
+
+        <div class="cartao">
+          <div class="campo">
+            <span class="rotulo">Foto da fatura</span>
+            <div id="foto-vazia" class="foto-vazia">
+              <div class="duas">
+                <button type="button" class="btn" id="btn-camara">📷 Tirar foto</button>
+                <button type="button" class="btn btn-sec" id="btn-galeria">Escolher ficheiro</button>
+              </div>
+              <p class="ajuda">Também aceita PDF (faturas eletrónicas).</p>
+            </div>
+            <div id="foto-preview" class="foto-preview" hidden>
+              <img id="foto-img" alt="Pré-visualização da fatura">
+              <div id="foto-pdf" class="foto-pdf" hidden></div>
+              <button type="button" class="btn btn-sec" id="btn-trocar">Trocar foto</button>
+            </div>
+            <input id="ficheiro-camara" class="ficheiro-oculto" type="file" accept="image/*" capture="environment">
+            <input id="ficheiro-galeria" class="ficheiro-oculto" type="file" accept="image/*,application/pdf">
+            <p id="erro-foto" class="erro-campo" hidden></p>
+          </div>
+        </div>
+
+        <div class="cartao">
+          <div class="campo">
+            <label for="valor">Valor</label>
+            <div class="valor">
+              <input id="valor" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00">
+              <span>€</span>
+            </div>
+            <p id="erro-valor" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <span class="rotulo">Secção</span>
+            <div id="seccoes" class="seccoes" role="radiogroup"></div>
+            <p id="erro-seccao" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo" id="campo-outro" hidden>
+            <label for="seccao-outro">Qual?</label>
+            <input id="seccao-outro" type="text" maxlength="200" placeholder="Ex.: Direção, Festa de Natal…">
+            <p id="erro-seccao-outro" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="descricao">Descrição do gasto</label>
+            <textarea id="descricao" maxlength="500" placeholder="Ex.: Material para a atividade de patrulhas"></textarea>
+            <p id="erro-descricao" class="erro-campo" hidden></p>
+          </div>
+        </div>
+
+        <div class="cartao">
+          <div class="campo">
+            <label for="pago-por">Quem pagou</label>
+            <input id="pago-por" type="text" maxlength="100" autocomplete="name" placeholder="Nome">
+            <p id="erro-pago-por" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="data-fatura">Data da fatura</label>
+            <input id="data-fatura" type="date">
+            <p id="erro-data" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="nif">NIF do emissor <span class="opcional">(opcional)</span></label>
+            <input id="nif" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="9 dígitos">
+            <p class="ajuda">O NIF de quem passou a fatura (loja, restaurante…).</p>
+            <p id="erro-nif" class="erro-campo" hidden></p>
+          </div>
+        </div>
+
+        <button class="btn" type="submit">Continuar</button>
+      </form>
+      <button type="button" class="link" id="btn-sair">Sair (esquecer PIN)</button>
+    </section>
+
+    <!-- Confirmação -->
+    <section id="ecra-confirmar" class="ecra" hidden>
+      <div id="erro-envio" class="alerta alerta-erro" hidden></div>
+      <div class="cartao">
+        <h2>Confirma os dados</h2>
+        <img id="conf-foto" class="resumo-foto" alt="" hidden>
+        <table class="resumo"><tbody id="conf-tabela"></tbody></table>
+      </div>
+      <div class="botoes">
+        <button class="btn" type="button" id="btn-enviar">Enviar</button>
+        <button class="btn btn-sec" type="button" id="btn-corrigir">Corrigir</button>
+      </div>
+    </section>
+
+    <!-- Sucesso -->
+    <section id="ecra-sucesso" class="ecra" hidden>
+      <div class="cartao sucesso">
+        <div class="visto">✓</div>
+        <h2>Fatura registada!</h2>
+        <p id="sucesso-texto" class="ajuda"></p>
+      </div>
+      <div class="botoes"><button class="btn" type="button" id="btn-outra">Submeter outra fatura</button></div>
+    </section>
+  </main>
+
+  <div id="carregar" class="carregar" hidden>
+    <div class="roda"></div>
+    <div id="carregar-texto">A enviar…</div>
+  </div>
+
+<script>
+// Endereço da app web do Apps Script (Implementar > Gerir implementações > URL)
+const URL_API = 'https://script.google.com/macros/s/AKfycbzHBgDbiCpj2ZLZ7plhkmDwpihKm0AEIQ_GxLmFsGJDmmtiMdn1XzRBTk3qLo5EljC9Ew/exec';
+
+const SECCOES = ['Agrupamento', 'Lobitos', 'Exploradores', 'Pioneiros', 'Caminheiros', 'Outros'];
+const LADO_MAX_IMAGEM = 1600;
+const QUALIDADE_JPEG = 0.75;
+const TAMANHO_MAX = 8 * 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+const estado = { ficheiro: null, id: null, dados: null };
+
+// --- Armazenamento local (pode não existir em modo privado) ---------------
+const guardado = {
+  ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  escrever(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  apagar(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+// --- Navegação --------------------------------------------------------------
+function mostrar(ecra) {
+  document.querySelectorAll('.ecra').forEach(s => { s.hidden = s.id !== 'ecra-' + ecra; });
+  window.scrollTo(0, 0);
+}
+
+function aCarregar(texto) {
+  $('carregar').hidden = !texto;
+  if (texto) $('carregar-texto').textContent = texto;
+}
+
+// --- API --------------------------------------------------------------------
+async function api(corpo, tentativas = 1) {
+  let ultimoErro;
+  for (let i = 0; i < tentativas; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 1500 * i));
+    try {
+      const r = await fetch(URL_API, {
+        method: 'POST',
+        // text/plain evita o pedido "preflight" de CORS, que o Apps Script não suporta
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(corpo),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) {
+      ultimoErro = e;
+    }
+  }
+  throw ultimoErro;
+}
+
+// --- PIN --------------------------------------------------------------------
+$('form-pin').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const pin = $('pin').value.trim();
+  if (!pin) return erroCampo('pin', 'erro-pin', 'Escreve o PIN.');
+  aCarregar('A verificar…');
+  try {
+    const r = await api({ acao: 'verificarPin', pin });
+    if (!r.ok) return erroCampo('pin', 'erro-pin', r.erro);
+    guardado.escrever('pin', pin);
+    limparErro('pin', 'erro-pin');
+    // Se o PIN foi pedido a meio de um envio, volta à confirmação sem perder os dados
+    if (estado.dados && estado.ficheiro) mostrar('confirmar');
+    else iniciarFormulario();
+  } catch (e) {
+    erroCampo('pin', 'erro-pin', 'Sem ligação. Verifica a internet e tenta novamente.');
+  } finally {
+    aCarregar(null);
+  }
+});
+
+$('btn-sair').addEventListener('click', () => {
+  guardado.apagar('pin');
+  $('pin').value = '';
+  mostrar('pin');
+});
+
+// --- Formulário -------------------------------------------------------------
+SECCOES.forEach((s, i) => {
+  const id = 'seccao-' + i;
+  $('seccoes').insertAdjacentHTML('beforeend',
+    `<input type="radio" name="seccao" id="${id}" value="${s}"><label for="${id}">${s}</label>`);
+});
+$('seccoes').addEventListener('change', () => {
+  $('campo-outro').hidden = valorSeccao() !== 'Outros';
+  limparErro('seccoes', 'erro-seccao');
+});
+
+function valorSeccao() {
+  const sel = document.querySelector('input[name=seccao]:checked');
+  return sel ? sel.value : '';
+}
+
+function hojeISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function iniciarFormulario() {
+  $('form-fatura').reset();
+  limparFicheiro();
+  $('campo-outro').hidden = true;
+  $('pago-por').value = guardado.ler('pagoPor') || '';
+  $('data-fatura').value = hojeISO();
+  $('data-fatura').max = hojeISO();
+  document.querySelectorAll('.erro-campo').forEach(p => { p.hidden = true; });
+  document.querySelectorAll('.invalido').forEach(el => el.classList.remove('invalido'));
+  $('erro-geral').hidden = true;
+  estado.id = null;
+  estado.dados = null;
+  mostrar('form');
+}
+
+function erroCampo(campoId, erroId, msg) {
+  $(campoId).classList.add('invalido');
+  $(erroId).textContent = msg;
+  $(erroId).hidden = false;
+  return false;
+}
+
+function limparErro(campoId, erroId) {
+  $(campoId).classList.remove('invalido');
+  $(erroId).hidden = true;
+}
+
+[['valor', 'erro-valor'], ['seccao-outro', 'erro-seccao-outro'], ['descricao', 'erro-descricao'],
+ ['pago-por', 'erro-pago-por'], ['data-fatura', 'erro-data'], ['nif', 'erro-nif']]
+  .forEach(([c, e]) => $(c).addEventListener('input', () => limparErro(c, e)));
+
+// --- Foto -------------------------------------------------------------------
+$('btn-camara').addEventListener('click', () => $('ficheiro-camara').click());
+$('btn-galeria').addEventListener('click', () => $('ficheiro-galeria').click());
+$('btn-trocar').addEventListener('click', () => $('ficheiro-galeria').click());
+$('ficheiro-camara').addEventListener('change', ev => escolherFicheiro(ev.target));
+$('ficheiro-galeria').addEventListener('change', ev => escolherFicheiro(ev.target));
+
+async function escolherFicheiro(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  aCarregar('A preparar a foto…');
+  try {
+    estado.ficheiro = await prepararFicheiro(f);
+    limparErro('foto-vazia', 'erro-foto');
+    $('foto-vazia').hidden = true;
+    $('foto-preview').hidden = false;
+    const pdf = estado.ficheiro.mimeType === 'application/pdf';
+    $('foto-img').hidden = pdf;
+    $('foto-pdf').hidden = !pdf;
+    if (pdf) $('foto-pdf').textContent = '📄 ' + f.name;
+    else $('foto-img').src = estado.ficheiro.preview;
+  } catch (e) {
+    limparFicheiro();
+    erroCampo('foto-vazia', 'erro-foto', e.message);
+  } finally {
+    aCarregar(null);
+  }
+}
+
+function limparFicheiro() {
+  estado.ficheiro = null;
+  $('foto-vazia').hidden = false;
+  $('foto-preview').hidden = true;
+  $('foto-img').removeAttribute('src');
+}
+
+function lerComoBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('Não foi possível ler o ficheiro.'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function carregarImagem(ficheiro) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(ficheiro);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('imagem')); };
+    img.src = url;
+  });
+}
+
+async function prepararFicheiro(f) {
+  if (f.type === 'application/pdf') {
+    if (f.size > TAMANHO_MAX) throw new Error('O PDF é demasiado grande (máx. 8 MB).');
+    const dataUrl = await lerComoBase64(f);
+    return { mimeType: f.type, base64: dataUrl.split(',')[1], preview: null };
+  }
+
+  // Reduz a imagem para poupar dados móveis e espaço na Drive
+  try {
+    const img = await carregarImagem(f);
+    const escala = Math.min(1, LADO_MAX_IMAGEM / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.naturalWidth * escala);
+    canvas.height = Math.round(img.naturalHeight * escala);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', QUALIDADE_JPEG);
+    return { mimeType: 'image/jpeg', base64: dataUrl.split(',')[1], preview: dataUrl };
+  } catch (e) {
+    // Formato que o browser não consegue abrir (ex.: HEIC): envia o original
+    const tipos = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+    if (!tipos.includes(f.type)) throw new Error('Este tipo de ficheiro não é suportado. Usa uma foto ou PDF.');
+    if (f.size > TAMANHO_MAX) throw new Error('A foto é demasiado grande (máx. 8 MB).');
+    const dataUrl = await lerComoBase64(f);
+    return { mimeType: f.type, base64: dataUrl.split(',')[1], preview: null };
+  }
+}
+
+// --- Validação ----------------------------------------------------------------
+function lerValor(texto) {
+  let v = texto.replace(/[\s€]/g, '');
+  if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(v)) return NaN;
+  return Math.round(Number(v) * 100) / 100;
+}
+
+function nifValido(nif) {
+  if (!/^\d{9}$/.test(nif)) return false;
+  let soma = 0;
+  for (let i = 0; i < 8; i++) soma += Number(nif[i]) * (9 - i);
+  const resto = soma % 11;
+  return (resto < 2 ? 0 : 11 - resto) === Number(nif[8]);
+}
+
+function formatarEuros(v) {
+  return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function formatarData(iso) {
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function validarFormulario() {
+  let ok = true;
+  let primeiro = null;
+  const falha = (campo, erro, msg) => {
+    erroCampo(campo, erro, msg);
+    if (!primeiro) primeiro = $(campo);
+    ok = false;
+  };
+
+  if (!estado.ficheiro) falha('foto-vazia', 'erro-foto', 'Falta a foto da fatura.');
+
+  const valor = lerValor($('valor').value);
+  if (!$('valor').value.trim()) falha('valor', 'erro-valor', 'Indica o valor.');
+  else if (!(valor > 0)) falha('valor', 'erro-valor', 'Valor inválido. Ex.: 12,50');
+  else if (valor > 100000) falha('valor', 'erro-valor', 'Valor demasiado alto.');
+
+  const seccao = valorSeccao();
+  if (!seccao) falha('seccoes', 'erro-seccao', 'Escolhe a secção.');
+  const seccaoOutro = $('seccao-outro').value.trim();
+  if (seccao === 'Outros' && !seccaoOutro) falha('seccao-outro', 'erro-seccao-outro', 'Descreve a secção.');
+
+  const descricao = $('descricao').value.trim();
+  if (!descricao) falha('descricao', 'erro-descricao', 'Descreve o gasto.');
+
+  const pagoPor = $('pago-por').value.trim();
+  if (!pagoPor) falha('pago-por', 'erro-pago-por', 'Indica quem pagou.');
+
+  const dataFatura = $('data-fatura').value;
+  if (!dataFatura) falha('data-fatura', 'erro-data', 'Indica a data da fatura.');
+  else if (dataFatura > hojeISO()) falha('data-fatura', 'erro-data', 'A data não pode ser no futuro.');
+
+  const nif = $('nif').value.replace(/\s/g, '');
+  if (nif && !nifValido(nif)) falha('nif', 'erro-nif', 'NIF inválido. Confirma os 9 dígitos ou deixa em branco.');
+
+  if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return ok ? { valor, seccao, seccaoOutro: seccao === 'Outros' ? seccaoOutro : '', descricao, pagoPor, dataFatura, nif } : null;
+}
+
+// --- Confirmação e envio -------------------------------------------------------
+$('form-fatura').addEventListener('submit', ev => {
+  ev.preventDefault();
+  $('erro-geral').hidden = true;
+  const dados = validarFormulario();
+  if (!dados) return;
+  estado.dados = dados;
+  // O mesmo ID é reutilizado se o envio tiver de ser repetido, para não duplicar
+  estado.id = crypto.randomUUID ? crypto.randomUUID()
+    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+
+  const linhas = [
+    ['Valor', `<span class="grande">${formatarEuros(dados.valor)}</span>`],
+    ['Secção', escapar(dados.seccao === 'Outros' ? 'Outros: ' + dados.seccaoOutro : dados.seccao)],
+    ['Descrição', escapar(dados.descricao)],
+    ['Quem pagou', escapar(dados.pagoPor)],
+    ['Data da fatura', formatarData(dados.dataFatura)],
+  ];
+  if (dados.nif) linhas.push(['NIF do emissor', escapar(dados.nif)]);
+  if (estado.ficheiro.mimeType === 'application/pdf') linhas.push(['Ficheiro', 'PDF anexado']);
+  $('conf-tabela').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+  $('conf-foto').hidden = !estado.ficheiro.preview;
+  if (estado.ficheiro.preview) $('conf-foto').src = estado.ficheiro.preview;
+  $('erro-envio').hidden = true;
+  mostrar('confirmar');
+});
+
+function escapar(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+$('btn-corrigir').addEventListener('click', () => mostrar('form'));
+
+$('btn-enviar').addEventListener('click', async () => {
+  const pin = guardado.ler('pin') || $('pin').value.trim();
+  aCarregar('A enviar…');
+  $('btn-enviar').disabled = true;
+  try {
+    const r = await api({
+      acao: 'submeter',
+      pin,
+      id: estado.id,
+      ...estado.dados,
+      ficheiro: { base64: estado.ficheiro.base64, mimeType: estado.ficheiro.mimeType },
+    }, 3);
+    if (r.codigo === 'PIN') {
+      guardado.apagar('pin');
+      $('pin').value = '';
+      mostrar('pin');
+      erroCampo('pin', 'erro-pin', 'O PIN mudou. Pede o novo PIN e volta a entrar — os dados da fatura mantêm-se.');
+      return;
+    }
+    if (!r.ok) throw new Error(r.erro);
+    guardado.escrever('pagoPor', estado.dados.pagoPor);
+    $('sucesso-texto').textContent =
+      `${formatarEuros(estado.dados.valor)} — ${estado.dados.seccao}. Ficou guardada no ano letivo ${r.anoLetivo}.`;
+    mostrar('sucesso');
+  } catch (e) {
+    $('erro-envio').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
+      ? e.message
+      : 'Não foi possível enviar. Verifica a internet e carrega em "Enviar" outra vez.';
+    $('erro-envio').hidden = false;
+    window.scrollTo(0, 0);
+  } finally {
+    $('btn-enviar').disabled = false;
+    aCarregar(null);
+  }
+});
+
+$('btn-outra').addEventListener('click', iniciarFormulario);
+
+// --- Avisar antes de sair com dados por enviar --------------------------------
+window.addEventListener('beforeunload', ev => {
+  const porEnviar = !$('ecra-form').hidden || !$('ecra-confirmar').hidden;
+  if (porEnviar && (estado.ficheiro || $('valor').value || $('descricao').value)) {
+    ev.preventDefault();
+    ev.returnValue = '';
+  }
+});
+
+// --- Arranque -------------------------------------------------------------------
+if (guardado.ler('pin')) iniciarFormulario();
+else mostrar('pin');
+</script>
+</body>
+</html>
