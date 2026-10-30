@@ -1,6 +1,6 @@
 # Faturas do Agrupamento
 
-App para o telemóvel onde os dirigentes registam as faturas: tiram foto, escolhem a secção, valor e descrição.
+App para o telemóvel onde os dirigentes registam as faturas: tiram foto, escolhem a secção, o valor, a atividade e o tipo de despesa.
 As fotos ficam numa pasta da Google Drive e os dados numa Google Sheet, organizados por **ano letivo**
 (1 de setembro a 31 de agosto, pela data da fatura). Custo: zero.
 
@@ -57,6 +57,6 @@ Fica com ícone próprio e abre como uma app normal. O PIN e o nome de quem pago
 ## Para a tesouraria
 
 - Partilha a pasta **Faturas do Agrupamento** da Drive com quem gere as contas.
-- A Sheet tem, por ano letivo, uma aba com todas as faturas (com link *Ver fatura*) e uma aba **Resumo** com totais por secção.
+- A Sheet tem, por ano letivo, uma aba com todas as faturas (com link *Ver fatura*) e uma aba **Resumo** com totais por secção e por tipo de despesa.
 - Ao mudar o ano letivo (1 de setembro), a aba e a pasta novas são criadas automaticamente na primeira fatura. Os anos anteriores ficam arquivados.
 - As faturas são arrumadas pela **data da fatura**: um recibo do acampamento de julho carregado em setembro vai para o ano anterior, como deve ser.

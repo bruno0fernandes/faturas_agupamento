@@ -11,13 +11,18 @@
  */
 
 const SECCOES = ['Agrupamento', 'Lobitos', 'Exploradores', 'Pioneiros', 'Caminheiros', 'Outros'];
+const TIPOS_DESPESA = [
+  'Alimentação', 'Combustível', 'Material de desgaste', 'Papelaria', 'Aluguer',
+  'Portagens', 'Transportes', 'Material de limpeza', 'Material de campo', 'Outros',
+];
 const CABECALHO = [
-  'ID', 'Data de carregamento', 'Data da fatura', 'Pago por', 'Secção',
-  'Detalhe (Outros)', 'Valor (€)', 'Descrição', 'NIF do emissor', 'Fatura',
+  'ID', 'Data de carregamento', 'Data da fatura', 'Pago por', 'Secção', 'Detalhe secção (Outros)',
+  'Atividade', 'Tipo de despesa', 'Detalhe tipo (Outros)', 'Valor (€)', 'NIF do emissor', 'Fatura',
 ];
 const COL_SECCAO = 'E';
-const COL_VALOR = 'G';
-const COL_FATURA = 10;
+const COL_TIPO = 'H';
+const COL_VALOR = 'J';
+const COL_FATURA = 12;
 
 const NOME_PASTA_RAIZ = 'Faturas do Agrupamento';
 const NOME_FOLHA = 'Faturas do Agrupamento';
@@ -87,7 +92,9 @@ function testeSubmissao() {
     seccao: 'Outros',
     seccaoOutro: 'Teste de configuração (podes apagar esta linha)',
     valor: 0.01,
-    descricao: 'Teste',
+    atividade: 'Teste',
+    tipoDespesa: 'Outros',
+    tipoOutro: 'Teste',
     dataFatura: Utilities.formatDate(new Date(), FUSO, 'yyyy-MM-dd'),
     nif: '',
     ficheiro: { base64: png, mimeType: 'image/png' },
@@ -183,7 +190,7 @@ function submeter(p) {
       d.id.slice(0, 8),
     ].join('_').replace(/[\\/:*?"<>|\n\r]+/g, '-').slice(0, 150) + '.' + TIPOS_PERMITIDOS[d.mimeType];
     const ficheiro = pastaAno.createFile(Utilities.newBlob(d.bytes, d.mimeType, nome));
-    ficheiro.setDescription(d.pagoPor + ' — ' + d.descricao);
+    ficheiro.setDescription(d.pagoPor + ' — ' + d.atividade + ' — ' + d.tipoDespesa);
 
     folha.appendRow([
       texto(d.id),
@@ -192,8 +199,10 @@ function submeter(p) {
       texto(d.pagoPor),
       d.seccao,
       texto(d.seccaoOutro),
+      texto(d.atividade),
+      d.tipoDespesa,
+      texto(d.tipoOutro),
       d.valor,
-      texto(d.descricao),
       texto(d.nif),
       '',
     ]);
@@ -224,8 +233,13 @@ function validar(p) {
   const valor = Math.round(Number(p.valor) * 100) / 100;
   if (!isFinite(valor) || valor <= 0 || valor > 100000) throw new ErroValidacao('Valor inválido.');
 
-  const descricao = str(p.descricao, 500);
-  if (!descricao) throw new ErroValidacao('Escreve uma descrição do gasto.');
+  const atividade = str(p.atividade, 200);
+  if (!atividade) throw new ErroValidacao('Indica o nome da atividade.');
+
+  const tipoDespesa = str(p.tipoDespesa, 50);
+  if (TIPOS_DESPESA.indexOf(tipoDespesa) === -1) throw new ErroValidacao('Tipo de despesa inválido.');
+  const tipoOutro = tipoDespesa === 'Outros' ? str(p.tipoOutro, 200) : '';
+  if (tipoDespesa === 'Outros' && !tipoOutro) throw new ErroValidacao('Especifica o tipo de despesa "Outros".');
 
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str(p.dataFatura, 10));
   if (!m) throw new ErroValidacao('Data da fatura inválida.');
@@ -250,7 +264,7 @@ function validar(p) {
   if (!bytes.length) throw new ErroValidacao('Falta a foto da fatura.');
   if (bytes.length > TAMANHO_MAX_FICHEIRO) throw new ErroValidacao('Ficheiro demasiado grande (máx. 10 MB).');
 
-  return { id, pagoPor, seccao, seccaoOutro, valor, descricao, dataFatura, nif, mimeType, bytes };
+  return { id, pagoPor, seccao, seccaoOutro, valor, atividade, tipoDespesa, tipoOutro, dataFatura, nif, mimeType, bytes };
 }
 
 /** Impede que texto começado por "=", "+", etc. seja interpretado como fórmula. */
@@ -277,7 +291,14 @@ function anoLetivo(data) {
 
 function obterFolhaAno(ss, ano) {
   const existente = ss.getSheetByName(ano);
-  if (existente) return existente;
+  if (existente) {
+    const cabecalho = existente.getRange(1, 1, 1, existente.getLastColumn()).getValues()[0];
+    if (cabecalho.join('|') === CABECALHO.join('|')) return existente;
+    // Aba criada com uma versão antiga das colunas: arquiva-a e cria uma nova
+    existente.setName(ano + ' (antigo)');
+    const resumoAntigo = ss.getSheetByName('Resumo ' + ano);
+    if (resumoAntigo) resumoAntigo.setName('Resumo ' + ano + ' (antigo)');
+  }
 
   const folha = ss.insertSheet(ano, 0);
   folha.appendRow(CABECALHO);
@@ -285,31 +306,47 @@ function obterFolhaAno(ss, ano) {
   folha.setFrozenRows(1);
   folha.getRange('B2:B').setNumberFormat('dd/mm/yyyy hh:mm');
   folha.getRange('C2:C').setNumberFormat('dd/mm/yyyy');
-  folha.getRange('G2:G').setNumberFormat('#,##0.00 "€"');
-  folha.getRange('I2:I').setNumberFormat('@');
+  folha.getRange(COL_VALOR + '2:' + COL_VALOR).setNumberFormat('#,##0.00 "€"');
+  folha.getRange('K2:K').setNumberFormat('@');
   folha.hideColumns(1);
-  folha.setColumnWidth(8, 300);
+  folha.setColumnWidth(7, 220);
 
   const resumo = ss.insertSheet('Resumo ' + ano, 0);
-  const ref = "'" + ano + "'!";
-  const linhas = [['Secção', 'Total (€)', 'Nº de faturas']];
-  SECCOES.forEach((s, i) => {
-    const r = i + 2;
-    linhas.push([
-      s,
-      '=SUMIF(' + ref + COL_SECCAO + ':' + COL_SECCAO + ',A' + r + ',' + ref + COL_VALOR + ':' + COL_VALOR + ')',
-      '=COUNTIF(' + ref + COL_SECCAO + ':' + COL_SECCAO + ',A' + r + ')',
-    ]);
-  });
-  const ultima = SECCOES.length + 1;
-  linhas.push(['Total', '=SUM(B2:B' + ultima + ')', '=SUM(C2:C' + ultima + ')']);
-  resumo.getRange(1, 1, linhas.length, 3).setValues(linhas);
-  resumo.getRange(1, 1, 1, 3).setFontWeight('bold').setBackground('#e8f0e8');
-  resumo.getRange(linhas.length, 1, 1, 3).setFontWeight('bold');
-  resumo.getRange(2, 2, linhas.length - 1, 1).setNumberFormat('#,##0.00 "€"');
+  escreverResumo(resumo, ano, 1, 'Secção', SECCOES, COL_SECCAO);
+  escreverResumo(resumo, ano, 5, 'Tipo de despesa', TIPOS_DESPESA, COL_TIPO);
   resumo.setColumnWidth(1, 160);
+  resumo.setColumnWidth(5, 180);
 
   return folha;
+}
+
+/** Tabela de totais e nº de faturas por categoria, a começar na coluna `col`. */
+function escreverResumo(resumo, ano, col, titulo, categorias, colCategoria) {
+  const ref = "'" + ano + "'!";
+  const letra = String.fromCharCode(64 + col);
+  const intervaloCat = ref + colCategoria + ':' + colCategoria;
+  const intervaloValor = ref + COL_VALOR + ':' + COL_VALOR;
+  const linhas = [[titulo, 'Total (€)', 'Nº de faturas']];
+  categorias.forEach((c, i) => {
+    const r = i + 2;
+    linhas.push([
+      c,
+      '=SUMIF(' + intervaloCat + ',' + letra + r + ',' + intervaloValor + ')',
+      '=COUNTIF(' + intervaloCat + ',' + letra + r + ')',
+    ]);
+  });
+  const ultima = categorias.length + 1;
+  const total = String.fromCharCode(65 + col);
+  const conta = String.fromCharCode(66 + col);
+  linhas.push([
+    'Total',
+    '=SUM(' + total + '2:' + total + ultima + ')',
+    '=SUM(' + conta + '2:' + conta + ultima + ')',
+  ]);
+  resumo.getRange(1, col, linhas.length, 3).setValues(linhas);
+  resumo.getRange(1, col, 1, 3).setFontWeight('bold').setBackground('#e8f0e8');
+  resumo.getRange(linhas.length, col, 1, 3).setFontWeight('bold');
+  resumo.getRange(2, col + 1, linhas.length - 1, 1).setNumberFormat('#,##0.00 "€"');
 }
 
 function obterPastaAno(raiz, ano) {

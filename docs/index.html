@@ -50,7 +50,7 @@
     .ajuda { color: var(--suave); font-size: 14px; margin: 6px 0 0; }
     .campo { margin-bottom: 18px; }
     .campo:last-child { margin-bottom: 0; }
-    input[type=text], input[type=password], input[type=date], textarea {
+    input[type=text], input[type=password], input[type=date], textarea, select {
       width: 100%;
       font: inherit;
       font-size: 17px; /* >=16px evita o zoom automático no iPhone */
@@ -63,8 +63,12 @@
       appearance: none;
       min-height: 48px;
     }
-    textarea { resize: vertical; min-height: 80px; }
-    input:focus, textarea:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px var(--verde-claro); }
+    select {
+      padding-right: 40px;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%235d665f' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
+    }
+    select:invalid { color: var(--suave); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px var(--verde-claro); }
     .invalido { border-color: var(--erro) !important; }
     .erro-campo { color: var(--erro); font-size: 14px; margin: 6px 0 0; }
     .valor { position: relative; }
@@ -206,9 +210,22 @@
           </div>
 
           <div class="campo">
-            <label for="descricao">Descrição do gasto</label>
-            <textarea id="descricao" maxlength="500" placeholder="Ex.: Material para a atividade de patrulhas"></textarea>
-            <p id="erro-descricao" class="erro-campo" hidden></p>
+            <label for="atividade">Nome da atividade</label>
+            <input id="atividade" type="text" maxlength="200" list="atividades-recentes" autocomplete="off" placeholder="Ex.: Acampamento de Natal">
+            <datalist id="atividades-recentes"></datalist>
+            <p id="erro-atividade" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo">
+            <label for="tipo-despesa">Tipo de despesa</label>
+            <select id="tipo-despesa" required></select>
+            <p id="erro-tipo" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo" id="campo-tipo-outro" hidden>
+            <label for="tipo-outro">Qual?</label>
+            <input id="tipo-outro" type="text" maxlength="200" placeholder="Especifica o tipo de despesa">
+            <p id="erro-tipo-outro" class="erro-campo" hidden></p>
           </div>
         </div>
 
@@ -273,6 +290,11 @@
 const URL_API = 'https://script.google.com/macros/s/AKfycbzHBgDbiCpj2ZLZ7plhkmDwpihKm0AEIQ_GxLmFsGJDmmtiMdn1XzRBTk3qLo5EljC9Ew/exec';
 
 const SECCOES = ['Agrupamento', 'Lobitos', 'Exploradores', 'Pioneiros', 'Caminheiros', 'Outros'];
+const TIPOS_DESPESA = [
+  'Alimentação', 'Combustível', 'Material de desgaste', 'Papelaria', 'Aluguer',
+  'Portagens', 'Transportes', 'Material de limpeza', 'Material de campo', 'Outros',
+];
+const MAX_ATIVIDADES_RECENTES = 8;
 const LADO_MAX_IMAGEM = 1600;
 const QUALIDADE_JPEG = 0.75;
 const TAMANHO_MAX = 8 * 1024 * 1024;
@@ -357,6 +379,23 @@ $('seccoes').addEventListener('change', () => {
   limparErro('seccoes', 'erro-seccao');
 });
 
+$('tipo-despesa').innerHTML = '<option value="" disabled selected>Escolhe…</option>' +
+  TIPOS_DESPESA.map(t => `<option value="${t}">${t}</option>`).join('');
+$('tipo-despesa').addEventListener('change', () => {
+  $('campo-tipo-outro').hidden = $('tipo-despesa').value !== 'Outros';
+  limparErro('tipo-despesa', 'erro-tipo');
+});
+
+// Sugere as últimas atividades usadas neste telemóvel (várias faturas da mesma atividade)
+function atividadesRecentes() {
+  try { return JSON.parse(guardado.ler('atividades') || '[]'); } catch (e) { return []; }
+}
+
+function guardarAtividade(nome) {
+  const lista = [nome, ...atividadesRecentes().filter(a => a !== nome)].slice(0, MAX_ATIVIDADES_RECENTES);
+  guardado.escrever('atividades', JSON.stringify(lista));
+}
+
 function valorSeccao() {
   const sel = document.querySelector('input[name=seccao]:checked');
   return sel ? sel.value : '';
@@ -371,6 +410,8 @@ function iniciarFormulario() {
   $('form-fatura').reset();
   limparFicheiro();
   $('campo-outro').hidden = true;
+  $('campo-tipo-outro').hidden = true;
+  $('atividades-recentes').innerHTML = atividadesRecentes().map(a => `<option value="${escapar(a)}">`).join('');
   $('pago-por').value = guardado.ler('pagoPor') || '';
   $('data-fatura').value = hojeISO();
   $('data-fatura').max = hojeISO();
@@ -394,7 +435,8 @@ function limparErro(campoId, erroId) {
   $(erroId).hidden = true;
 }
 
-[['valor', 'erro-valor'], ['seccao-outro', 'erro-seccao-outro'], ['descricao', 'erro-descricao'],
+[['valor', 'erro-valor'], ['seccao-outro', 'erro-seccao-outro'], ['atividade', 'erro-atividade'],
+ ['tipo-outro', 'erro-tipo-outro'],
  ['pago-por', 'erro-pago-por'], ['data-fatura', 'erro-data'], ['nif', 'erro-nif']]
   .forEach(([c, e]) => $(c).addEventListener('input', () => limparErro(c, e)));
 
@@ -530,8 +572,13 @@ function validarFormulario() {
   const seccaoOutro = $('seccao-outro').value.trim();
   if (seccao === 'Outros' && !seccaoOutro) falha('seccao-outro', 'erro-seccao-outro', 'Descreve a secção.');
 
-  const descricao = $('descricao').value.trim();
-  if (!descricao) falha('descricao', 'erro-descricao', 'Descreve o gasto.');
+  const atividade = $('atividade').value.trim();
+  if (!atividade) falha('atividade', 'erro-atividade', 'Indica o nome da atividade.');
+
+  const tipoDespesa = $('tipo-despesa').value;
+  if (!tipoDespesa) falha('tipo-despesa', 'erro-tipo', 'Escolhe o tipo de despesa.');
+  const tipoOutro = $('tipo-outro').value.trim();
+  if (tipoDespesa === 'Outros' && !tipoOutro) falha('tipo-outro', 'erro-tipo-outro', 'Especifica o tipo de despesa.');
 
   const pagoPor = $('pago-por').value.trim();
   if (!pagoPor) falha('pago-por', 'erro-pago-por', 'Indica quem pagou.');
@@ -544,7 +591,8 @@ function validarFormulario() {
   if (nif && !nifValido(nif)) falha('nif', 'erro-nif', 'NIF inválido. Confirma os 9 dígitos ou deixa em branco.');
 
   if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  return ok ? { valor, seccao, seccaoOutro: seccao === 'Outros' ? seccaoOutro : '', descricao, pagoPor, dataFatura, nif } : null;
+  return ok ? { valor, seccao, seccaoOutro: seccao === 'Outros' ? seccaoOutro : '',
+    atividade, tipoDespesa, tipoOutro: tipoDespesa === 'Outros' ? tipoOutro : '', pagoPor, dataFatura, nif } : null;
 }
 
 // --- Confirmação e envio -------------------------------------------------------
@@ -561,7 +609,8 @@ $('form-fatura').addEventListener('submit', ev => {
   const linhas = [
     ['Valor', `<span class="grande">${formatarEuros(dados.valor)}</span>`],
     ['Secção', escapar(dados.seccao === 'Outros' ? 'Outros: ' + dados.seccaoOutro : dados.seccao)],
-    ['Descrição', escapar(dados.descricao)],
+    ['Atividade', escapar(dados.atividade)],
+    ['Tipo de despesa', escapar(dados.tipoDespesa === 'Outros' ? 'Outros: ' + dados.tipoOutro : dados.tipoDespesa)],
     ['Quem pagou', escapar(dados.pagoPor)],
     ['Data da fatura', formatarData(dados.dataFatura)],
   ];
@@ -601,6 +650,7 @@ $('btn-enviar').addEventListener('click', async () => {
     }
     if (!r.ok) throw new Error(r.erro);
     guardado.escrever('pagoPor', estado.dados.pagoPor);
+    guardarAtividade(estado.dados.atividade);
     $('sucesso-texto').textContent =
       `${formatarEuros(estado.dados.valor)} — ${estado.dados.seccao}. Ficou guardada no ano letivo ${r.anoLetivo}.`;
     mostrar('sucesso');
@@ -621,7 +671,7 @@ $('btn-outra').addEventListener('click', iniciarFormulario);
 // --- Avisar antes de sair com dados por enviar --------------------------------
 window.addEventListener('beforeunload', ev => {
   const porEnviar = !$('ecra-form').hidden || !$('ecra-confirmar').hidden;
-  if (porEnviar && (estado.ficheiro || $('valor').value || $('descricao').value)) {
+  if (porEnviar && (estado.ficheiro || $('valor').value || $('atividade').value)) {
     ev.preventDefault();
     ev.returnValue = '';
   }
