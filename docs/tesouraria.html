@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tesouraria do Agrupamento</title>
+  <meta name="theme-color" content="#2f6b3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Tesouraria">
+  <link rel="manifest" href="manifest-tesouraria.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --verde: #2f6b3a;
+      --verde-escuro: #1f4a27;
+      --verde-claro: #e3efe4;
+      --fundo: #f3f4f1;
+      --texto: #111411;
+      --suave: #4a524c;
+      --borda: #b9c2bb;
+      --erro: #a4161a;
+      --erro-fundo: #fde8e8;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 21px;
+      line-height: 1.4;
+      color: var(--texto);
+      background: var(--fundo);
+    }
+    header {
+      background: var(--verde);
+      color: #fff;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+      font-weight: 700;
+      font-size: 22px;
+      text-align: center;
+    }
+    main { max-width: 640px; margin: 0 auto; padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); }
+    .ecra[hidden], [hidden] { display: none !important; }
+    h2 { font-size: 26px; margin: 0 0 14px; line-height: 1.25; }
+    p { margin: 0 0 12px; }
+    .cartao { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; border: 1px solid #dde2de; }
+    .centro { text-align: center; }
+
+    button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .btn {
+      display: block; width: 100%;
+      min-height: 72px; padding: 14px 18px;
+      border-radius: 14px; border: 3px solid transparent;
+      font-size: 22px; font-weight: 700; text-align: center;
+      background: var(--verde); color: #fff;
+    }
+    .btn:active { background: var(--verde-escuro); }
+    .btn-sec { background: #fff; color: var(--texto); border-color: var(--borda); }
+    .btn-sec:active { background: #eceeec; }
+    .botoes { display: grid; gap: 14px; }
+
+    /* Separadores */
+    .separadores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .separadores button {
+      min-height: 60px; border-radius: 12px; border: 3px solid var(--borda);
+      background: #fff; font-size: 19px; font-weight: 700; color: var(--suave);
+    }
+    .separadores button[aria-selected=true] { background: var(--verde); border-color: var(--verde); color: #fff; }
+
+    .contagem { font-size: 20px; text-align: center; margin-bottom: 14px; color: var(--suave); }
+    .contagem b { color: var(--texto); }
+
+    /* Fatura */
+    .valor-grande { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0 2px; }
+    .quem { font-size: 24px; text-align: center; margin-bottom: 16px; }
+    .detalhes { width: 100%; border-collapse: collapse; }
+    .detalhes th { text-align: left; font-weight: 600; color: var(--suave); padding: 10px 12px 10px 0; vertical-align: top; width: 40%; font-size: 19px; }
+    .detalhes td { padding: 10px 0; word-break: break-word; }
+    .detalhes tr + tr th, .detalhes tr + tr td { border-top: 1px solid #e6e9e6; }
+
+    .foto {
+      min-height: 160px; border-radius: 12px; background: #eceeec;
+      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
+      color: var(--suave); text-align: center; padding: 10px; margin-bottom: 16px;
+    }
+    .foto img { max-width: 100%; max-height: 360px; border-radius: 8px; display: block; }
+    .foto .dica { font-size: 17px; }
+    .foto-link { font-size: 19px; color: var(--verde-escuro); font-weight: 700; }
+
+    .pergunta { font-size: 24px; font-weight: 700; text-align: center; margin: 22px 0 14px; }
+    .opcao {
+      display: flex; align-items: center; gap: 14px; width: 100%;
+      min-height: 92px; padding: 14px 16px; margin-bottom: 14px;
+      border-radius: 16px; border: 3px solid var(--verde);
+      background: #fff; color: var(--texto); text-align: left;
+    }
+    .opcao:active { background: var(--verde-claro); }
+    .opcao .icone { font-size: 40px; line-height: 1; flex: none; width: 48px; text-align: center; }
+    .opcao b { display: block; font-size: 22px; }
+    .opcao span.sub { display: block; font-size: 18px; color: var(--suave); }
+    .saltar { margin-top: 6px; }
+
+    /* Confirmação */
+    .confirmar-texto { font-size: 26px; text-align: center; margin: 8px 0 18px; }
+    .confirmar-opcao {
+      font-size: 26px; font-weight: 800; text-align: center;
+      background: var(--verde-claro); border-radius: 12px; padding: 16px; margin-bottom: 8px;
+    }
+
+    .visto {
+      width: 96px; height: 96px; border-radius: 50%; background: var(--verde);
+      color: #fff; font-size: 58px; line-height: 96px; margin: 8px auto 16px; text-align: center;
+    }
+
+    /* Já tratadas */
+    .tratada { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #dde2de; }
+    .tratada .linha1 { font-size: 22px; font-weight: 700; }
+    .tratada .estado { display: inline-block; margin: 6px 0 12px; padding: 4px 10px; border-radius: 8px; background: var(--verde-claro); font-size: 18px; font-weight: 600; }
+    .tratada .btn { min-height: 60px; font-size: 19px; }
+
+    .alerta { border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; background: var(--erro-fundo); color: var(--erro); font-weight: 600; }
+
+    input[type=password] {
+      width: 100%; font: inherit; font-size: 30px; letter-spacing: 6px; text-align: center;
+      padding: 14px; border: 3px solid var(--borda); border-radius: 14px; min-height: 72px;
+      background: #fff; color: var(--texto); -webkit-appearance: none; appearance: none;
+    }
+    input:focus { outline: none; border-color: var(--verde); }
+    label { display: block; font-weight: 700; margin-bottom: 10px; font-size: 22px; }
+
+    .link { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 17px; padding: 16px; display: block; margin: 20px auto 0; }
+
+    /* Foto em ecrã inteiro */
+    .ampliar {
+      position: fixed; inset: 0; background: #000; z-index: 20;
+      display: flex; flex-direction: column;
+    }
+    .ampliar .area { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; }
+    .ampliar img { max-width: 100%; }
+    .ampliar .btn { border-radius: 0; min-height: calc(80px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
+
+    .carregar {
+      position: fixed; inset: 0; background: rgba(255,255,255,.9);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; font-weight: 700; font-size: 22px; z-index: 30;
+    }
+    .roda {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 6px solid var(--verde-claro); border-top-color: var(--verde);
+      animation: girar .9s linear infinite;
+    }
+    @keyframes girar { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>Tesouraria do Agrupamento</header>
+
+  <main>
+    <!-- PIN -->
+    <section id="ecra-pin" class="ecra" hidden>
+      <form id="form-pin" class="cartao" novalidate>
+        <label for="pin">Escreva o PIN da tesouraria</label>
+        <input id="pin" type="password" inputmode="numeric" autocomplete="off">
+        <div id="erro-pin" class="alerta" style="margin-top:14px" hidden></div>
+        <div class="botoes" style="margin-top:16px"><button class="btn" type="submit">Entrar</button></div>
+      </form>
+    </section>
+
+    <!-- Separadores -->
+    <nav id="separadores" class="separadores" role="tablist" hidden>
+      <button type="button" role="tab" id="tab-pendentes" aria-selected="true">Por tratar</button>
+      <button type="button" role="tab" id="tab-tratadas" aria-selected="false">Já tratadas</button>
+    </nav>
+
+    <!-- Erro de ligação -->
+    <section id="ecra-erro" class="ecra" hidden>
+      <div class="cartao centro">
+        <h2>Não foi possível ligar</h2>
+        <p id="erro-texto">Verifique se tem internet e carregue no botão abaixo.</p>
+      </div>
+      <button class="btn" type="button" id="btn-tentar">Tentar outra vez</button>
+    </section>
+
+    <!-- Fatura por tratar -->
+    <section id="ecra-fatura" class="ecra" hidden>
+      <div id="contagem" class="contagem"></div>
+      <div class="cartao">
+        <div id="foto" class="foto"></div>
+        <div id="f-valor" class="valor-grande"></div>
+        <div id="f-quem" class="quem"></div>
+        <table class="detalhes"><tbody id="f-detalhes"></tbody></table>
+      </div>
+
+      <div class="pergunta">Esta fatura foi…</div>
+      <button type="button" class="opcao" data-estado="Reembolsado" data-forma="Dinheiro">
+        <span class="icone">💶</span>
+        <span><b>Reembolsada em dinheiro</b><span class="sub">Entreguei o dinheiro em mão</span></span>
+      </button>
+      <button type="button" class="opcao" data-estado="Reembolsado" data-forma="Transferência">
+        <span class="icone">🏦</span>
+        <span><b>Reembolsada por transferência</b><span class="sub">Fiz uma transferência bancária</span></span>
+      </button>
+      <button type="button" class="opcao" data-estado="Sem reembolso" data-forma="">
+        <span class="icone">✅</span>
+        <span><b>Não precisa de reembolso</b><span class="sub">Foi paga com dinheiro do agrupamento</span></span>
+      </button>
+
+      <button type="button" class="btn btn-sec saltar" id="btn-saltar">Decidir mais tarde ➜</button>
+    </section>
+
+    <!-- Nada por tratar -->
+    <section id="ecra-vazio" class="ecra" hidden>
+      <div class="cartao centro">
+        <div class="visto">✓</div>
+        <h2>Não há faturas por tratar</h2>
+        <p>Está tudo em dia.</p>
+      </div>
+      <button class="btn btn-sec" type="button" id="btn-atualizar">Ver se chegaram faturas novas</button>
+    </section>
+
+    <!-- Confirmação -->
+    <section id="ecra-confirmar" class="ecra" hidden>
+      <div class="cartao">
+        <h2 class="centro">Confirma?</h2>
+        <div id="c-texto" class="confirmar-texto"></div>
+        <div id="c-opcao" class="confirmar-opcao"></div>
+      </div>
+      <div class="botoes">
+        <button class="btn" type="button" id="btn-confirmar">Sim, confirmo</button>
+        <button class="btn btn-sec" type="button" id="btn-voltar">Não, voltar atrás</button>
+      </div>
+    </section>
+
+    <!-- Feito -->
+    <section id="ecra-feito" class="ecra" hidden>
+      <div class="cartao centro">
+        <div class="visto">✓</div>
+        <h2>Ficou registado</h2>
+        <p id="feito-texto"></p>
+      </div>
+      <button class="btn" type="button" id="btn-seguinte">Ver a próxima fatura</button>
+    </section>
+
+    <!-- Já tratadas -->
+    <section id="ecra-tratadas" class="ecra" hidden>
+      <p class="contagem">As últimas faturas tratadas. Se se enganou, pode corrigir aqui.</p>
+      <div id="lista-tratadas"></div>
+      <button type="button" class="link" id="btn-sair">Sair (esquecer o PIN neste aparelho)</button>
+    </section>
+  </main>
+
+  <div id="ampliar" class="ampliar" hidden>
+    <div class="area"><img id="ampliar-img" alt="Fatura"></div>
+    <button class="btn" type="button" id="btn-fechar-foto">Fechar fotografia</button>
+  </div>
+
+  <div id="carregar" class="carregar" hidden>
+    <div class="roda"></div>
+    <div id="carregar-texto">Um momento…</div>
+  </div>
+
+<script>
+// Endereço da app web do Apps Script (o mesmo da app dos dirigentes)
+const URL_API = 'https://script.google.com/macros/s/AKfycbzHBgDbiCpj2ZLZ7plhkmDwpihKm0AEIQ_GxLmFsGJDmmtiMdn1XzRBTk3qLo5EljC9Ew/exec';
+
+const $ = id => document.getElementById(id);
+const estado = {
+  pendentes: [],
+  tratadas: [],
+  indice: 0,
+  acao: null,        // { fatura, estado, forma } à espera de confirmação
+  fotos: new Map(),  // fileId -> resposta do servidor
+};
+
+const guardado = {
+  ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  escrever(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  apagar(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+// --- Utilitários --------------------------------------------------------------
+function escapar(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function euros(v) {
+  return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function mostrar(ecra) {
+  document.querySelectorAll('.ecra').forEach(s => { s.hidden = s.id !== 'ecra-' + ecra; });
+  $('separadores').hidden = ecra === 'pin' || ecra === 'confirmar';
+  const tratadas = ecra === 'tratadas';
+  $('tab-pendentes').setAttribute('aria-selected', String(!tratadas));
+  $('tab-tratadas').setAttribute('aria-selected', String(tratadas));
+  window.scrollTo(0, 0);
+}
+
+function aCarregar(texto) {
+  $('carregar').hidden = !texto;
+  if (texto) $('carregar-texto').textContent = texto;
+}
+
+async function api(corpo) {
+  let ultimoErro;
+  for (let i = 0; i < 3; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 1500 * i));
+    try {
+      const r = await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...corpo, pin: guardado.ler('pinTesouraria') || $('pin').value.trim() }),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const resposta = await r.json();
+      if (resposta.codigo === 'PIN') {
+        guardado.apagar('pinTesouraria');
+        throw Object.assign(new Error(resposta.erro), { pin: true });
+      }
+      return resposta;
+    } catch (e) {
+      if (e.pin) throw e;
+      ultimoErro = e;
+    }
+  }
+  throw ultimoErro;
+}
+
+function tratarErro(e) {
+  if (e.pin) {
+    $('pin').value = '';
+    $('erro-pin').textContent = 'O PIN não está certo. Escreva-o outra vez.';
+    $('erro-pin').hidden = false;
+    mostrar('pin');
+    return;
+  }
+  $('erro-texto').textContent = 'Verifique se tem internet e carregue no botão abaixo.';
+  mostrar('erro');
+}
+
+// --- PIN ------------------------------------------------------------------------
+$('form-pin').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const pin = $('pin').value.trim();
+  if (!pin) return;
+  $('erro-pin').hidden = true;
+  aCarregar('A verificar…');
+  try {
+    const r = await api({ acao: 'tesouraria.verificarPin' });
+    if (!r.ok) throw new Error(r.erro);
+    guardado.escrever('pinTesouraria', pin);
+    await carregar();
+  } catch (e) {
+    if (e.pin) tratarErro(e);
+    else {
+      $('erro-pin').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
+        ? e.message : 'Não foi possível ligar. Verifique a internet.';
+      $('erro-pin').hidden = false;
+    }
+  } finally {
+    aCarregar(null);
+  }
+});
+
+$('btn-sair').addEventListener('click', () => {
+  guardado.apagar('pinTesouraria');
+  $('pin').value = '';
+  mostrar('pin');
+});
+
+// --- Carregar faturas -----------------------------------------------------------
+async function carregar() {
+  aCarregar('A carregar as faturas…');
+  try {
+    const r = await api({ acao: 'tesouraria.listar' });
+    if (!r.ok) throw new Error(r.erro);
+    estado.pendentes = r.pendentes;
+    estado.tratadas = r.tratadas;
+    estado.indice = 0;
+    mostrarPendente();
+  } catch (e) {
+    tratarErro(e);
+  } finally {
+    aCarregar(null);
+  }
+}
+
+$('btn-tentar').addEventListener('click', carregar);
+$('btn-atualizar').addEventListener('click', carregar);
+
+$('tab-pendentes').addEventListener('click', mostrarPendente);
+$('tab-tratadas').addEventListener('click', mostrarTratadas);
+
+// --- Fatura por tratar ----------------------------------------------------------
+function textoSeccao(f) { return f.seccao === 'Outros' && f.seccaoOutro ? 'Outros: ' + f.seccaoOutro : f.seccao; }
+function textoTipo(f) { return f.tipoDespesa === 'Outros' && f.tipoOutro ? 'Outros: ' + f.tipoOutro : f.tipoDespesa; }
+
+function mostrarPendente() {
+  const lista = estado.pendentes;
+  if (!lista.length) return mostrar('vazio');
+  if (estado.indice >= lista.length) estado.indice = 0;
+  const f = lista[estado.indice];
+  const total = lista.reduce((s, x) => s + x.valor, 0);
+
+  $('contagem').innerHTML = lista.length === 1
+    ? 'Falta <b>1 fatura</b>'
+    : `Fatura <b>${estado.indice + 1}</b> de <b>${lista.length}</b> · Total por tratar: <b>${euros(total)}</b>`;
+  $('f-valor').textContent = euros(f.valor);
+  $('f-quem').innerHTML = 'Pago por <b>' + escapar(f.pagoPor) + '</b>';
+  const linhas = [
+    ['Atividade', f.atividade],
+    ['Tipo', textoTipo(f)],
+    ['Secção', textoSeccao(f)],
+    ['Data', f.dataFatura],
+  ];
+  if (f.descricao) linhas.push(['Descrição', f.descricao]);
+  $('f-detalhes').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${escapar(v)}</td></tr>`).join('');
+  $('btn-saltar').hidden = lista.length < 2;
+
+  mostrar('fatura');
+  mostrarFoto(f);
+}
+
+async function mostrarFoto(f) {
+  const caixa = $('foto');
+  if (!f.fileId) { caixa.innerHTML = 'Esta fatura não tem fotografia.'; return; }
+  caixa.innerHTML = 'A carregar a fotografia…';
+  try {
+    let foto = estado.fotos.get(f.fileId);
+    if (!foto) {
+      foto = await api({ acao: 'tesouraria.foto', fileId: f.fileId });
+      if (!foto.ok) throw new Error(foto.erro);
+      estado.fotos.set(f.fileId, foto);
+    }
+    // O tesoureiro pode ter passado para outra fatura entretanto
+    if (estado.pendentes[estado.indice] !== f || $('ecra-fatura').hidden) return;
+    let html = '';
+    if (foto.base64) {
+      html += `<img id="foto-img" src="data:${foto.mimeType};base64,${foto.base64}" alt="Fotografia da fatura">`;
+      if (!foto.pdf) html += '<span class="dica">Toque na fotografia para a ver maior</span>';
+    }
+    if (foto.pdf || !foto.base64) {
+      html += `<a class="foto-link" href="${escapar(foto.url)}" target="_blank" rel="noopener">Abrir ${foto.pdf ? 'o PDF' : 'o ficheiro'} da fatura</a>`;
+    }
+    caixa.innerHTML = html;
+    const img = $('foto-img');
+    if (img && !foto.pdf) img.addEventListener('click', () => ampliarFoto(img.src));
+  } catch (e) {
+    if (e.pin) return tratarErro(e);
+    caixa.innerHTML = 'Não foi possível mostrar a fotografia.' +
+      (f.url ? `<a class="foto-link" href="${escapar(f.url)}" target="_blank" rel="noopener">Abrir na Google Drive</a>` : '');
+  }
+}
+
+function ampliarFoto(src) {
+  $('ampliar-img').src = src;
+  $('ampliar').hidden = false;
+}
+$('btn-fechar-foto').addEventListener('click', () => { $('ampliar').hidden = true; });
+
+$('btn-saltar').addEventListener('click', () => {
+  estado.indice = (estado.indice + 1) % estado.pendentes.length;
+  mostrarPendente();
+});
+
+document.querySelectorAll('.opcao').forEach(botao => {
+  botao.addEventListener('click', () => {
+    pedirConfirmacao(estado.pendentes[estado.indice], botao.dataset.estado, botao.dataset.forma);
+  });
+});
+
+// --- Confirmação ----------------------------------------------------------------
+function descricaoOpcao(estadoReembolso, forma) {
+  if (estadoReembolso === 'Reembolsado') return forma === 'Dinheiro' ? 'Reembolsada em dinheiro' : 'Reembolsada por transferência';
+  if (estadoReembolso === 'Sem reembolso') return 'Não precisa de reembolso';
+  return 'Voltar a pôr por tratar';
+}
+
+function pedirConfirmacao(fatura, estadoReembolso, forma) {
+  estado.acao = { fatura, estado: estadoReembolso, forma };
+  $('c-texto').innerHTML = `Fatura de <b>${euros(fatura.valor)}</b><br>paga por <b>${escapar(fatura.pagoPor)}</b>`;
+  $('c-opcao').textContent = descricaoOpcao(estadoReembolso, forma);
+  mostrar('confirmar');
+}
+
+$('btn-voltar').addEventListener('click', () => {
+  if (estado.acao && estado.acao.estado === 'Por tratar') mostrarTratadas();
+  else mostrarPendente();
+});
+
+$('btn-confirmar').addEventListener('click', async () => {
+  const { fatura, estado: novoEstado, forma } = estado.acao;
+  aCarregar('A guardar…');
+  try {
+    const r = await api({ acao: 'tesouraria.marcar', id: fatura.id, ano: fatura.ano, estado: novoEstado, forma });
+    if (!r.ok) throw new Error(r.erro);
+
+    estado.pendentes = estado.pendentes.filter(f => f !== fatura);
+    estado.tratadas = estado.tratadas.filter(f => f !== fatura);
+    const atualizada = { ...fatura, reembolso: novoEstado, forma, tratadaEm: new Date().toLocaleDateString('pt-PT') };
+    if (novoEstado === 'Por tratar') {
+      estado.pendentes.push(atualizada);
+      estado.indice = estado.pendentes.length - 1;
+      $('feito-texto').textContent = 'A fatura voltou para "Por tratar".';
+      $('btn-seguinte').textContent = 'Ver as faturas por tratar';
+    } else {
+      estado.tratadas.unshift(atualizada);
+      if (estado.indice >= estado.pendentes.length) estado.indice = 0;
+      const faltam = estado.pendentes.length;
+      $('feito-texto').textContent = faltam === 0 ? 'Não há mais faturas por tratar.'
+        : faltam === 1 ? 'Falta 1 fatura.' : `Faltam ${faltam} faturas.`;
+      $('btn-seguinte').textContent = faltam === 0 ? 'Terminar' : 'Ver a próxima fatura';
+    }
+    estado.acao = null;
+    mostrar('feito');
+  } catch (e) {
+    if (e.pin) return tratarErro(e);
+    $('erro-texto').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
+      ? e.message
+      : 'Não ficou guardado. Verifique se tem internet e tente outra vez.';
+    mostrar('erro');
+  } finally {
+    aCarregar(null);
+  }
+});
+
+$('btn-seguinte').addEventListener('click', mostrarPendente);
+
+// --- Já tratadas ----------------------------------------------------------------
+function mostrarTratadas() {
+  const lista = estado.tratadas;
+  $('lista-tratadas').innerHTML = lista.length ? lista.map((f, i) => `
+    <div class="tratada">
+      <div class="linha1">${euros(f.valor)} · ${escapar(f.pagoPor)}</div>
+      <div>${escapar(f.atividade)} — ${escapar(textoTipo(f))}</div>
+      <div class="estado">${escapar(descricaoOpcao(f.reembolso, f.forma))}${f.tratadaEm ? ' em ' + escapar(f.tratadaEm) : ''}</div>
+      <button type="button" class="btn btn-sec" data-corrigir="${i}">Enganei-me, voltar a pôr por tratar</button>
+    </div>`).join('')
+    : '<div class="cartao centro">Ainda não há faturas tratadas.</div>';
+  mostrar('tratadas');
+}
+
+$('lista-tratadas').addEventListener('click', ev => {
+  const botao = ev.target.closest('[data-corrigir]');
+  if (botao) pedirConfirmacao(estado.tratadas[Number(botao.dataset.corrigir)], 'Por tratar', '');
+});
+
+// --- Arranque -------------------------------------------------------------------
+if (guardado.ler('pinTesouraria')) carregar();
+else mostrar('pin');
+</script>
+</body>
+</html>

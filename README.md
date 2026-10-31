@@ -60,3 +60,34 @@ Fica com ícone próprio e abre como uma app normal. O PIN e o nome de quem pago
 - A Sheet tem, por ano letivo, uma aba com todas as faturas (com link *Ver fatura*) e uma aba **Resumo** com totais por secção e por tipo de despesa.
 - Ao mudar o ano letivo (1 de setembro), a aba e a pasta novas são criadas automaticamente na primeira fatura. Os anos anteriores ficam arquivados.
 - As faturas são arrumadas pela **data da fatura**: um recibo do acampamento de julho carregado em setembro vai para o ano anterior, como deve ser.
+
+## App da tesouraria
+
+Página separada para o tesoureiro marcar cada fatura como tratada:
+`https://<utilizador>.github.io/<repositório>/tesouraria.html`
+
+Usa um **PIN próprio** (`PIN_TESOURARIA`), diferente do dos dirigentes, por isso só o tesoureiro consegue marcar reembolsos.
+O `setup()` cria-o; se já tinhas corrido o `setup()` antes, corre-o outra vez (não apaga nada) e o PIN aparece no registo.
+
+Para cada fatura por tratar, o tesoureiro escolhe uma de três opções:
+
+| Botão na app | Coluna *Reembolso* | Coluna *Forma de reembolso* |
+|---|---|---|
+| 💶 Reembolsada em dinheiro | Reembolsado | Dinheiro |
+| 🏦 Reembolsada por transferência | Reembolsado | Transferência |
+| ✅ Não precisa de reembolso | Sem reembolso | — |
+
+A coluna *Tratada em* guarda a data. Faturas novas entram como **Por tratar**.
+No separador **Já tratadas** é possível desfazer um engano.
+
+### Cábula para o tesoureiro
+
+1. Abrir a app **Tesouraria** no telemóvel.
+2. Aparece uma fatura de cada vez: valor, quem pagou e para quê. Tocar na fotografia para a ver maior.
+3. Carregar no botão que corresponde ao que aconteceu:
+   - **Reembolsada em dinheiro** — deu o dinheiro em mão;
+   - **Reembolsada por transferência** — fez uma transferência;
+   - **Não precisa de reembolso** — foi paga com dinheiro do agrupamento.
+4. Confirmar com **Sim, confirmo**. Se se enganou no botão, carregar em **Não, voltar atrás**.
+5. Se ainda não sabe o que fazer com uma fatura, carregar em **Decidir mais tarde**.
+6. Se se enganou depois de confirmar: separador **Já tratadas** → **Enganei-me, voltar a pôr por tratar**.

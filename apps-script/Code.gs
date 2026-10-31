@@ -3,9 +3,11 @@
  *
  * Recebe as submissões da app, guarda a foto/PDF na Google Drive
  * e acrescenta uma linha na Google Sheet do ano letivo respetivo.
+ * Serve também a app da tesouraria, que marca as faturas como reembolsadas.
  *
  * Configuração (Definições do projeto > Propriedades do script):
  *   PIN             PIN partilhado pelos dirigentes (criado pelo setup())
+ *   PIN_TESOURARIA  PIN do tesoureiro (criado pelo setup())
  *   SPREADSHEET_ID  criado pelo setup()
  *   PASTA_ID        criado pelo setup()
  */
@@ -18,11 +20,17 @@ const TIPOS_DESPESA = [
 const CABECALHO = [
   'ID', 'Data de carregamento', 'Data da fatura', 'Pago por', 'Secção', 'Detalhe secção (Outros)',
   'Atividade', 'Tipo de despesa', 'Detalhe tipo (Outros)', 'Descrição', 'Valor (€)', 'NIF do emissor', 'Fatura',
+  'Reembolso', 'Forma de reembolso', 'Tratada em',
 ];
 const COL_SECCAO = 'E';
 const COL_TIPO = 'H';
 const COL_VALOR = 'K';
 const COL_FATURA = 13;
+const COL_REEMBOLSO = 14;
+
+const ESTADOS_REEMBOLSO = ['Por tratar', 'Reembolsado', 'Sem reembolso'];
+const FORMAS_REEMBOLSO = ['Dinheiro', 'Transferência'];
+const MAX_TRATADAS = 40;
 
 const NOME_PASTA_RAIZ = 'Faturas do Agrupamento';
 const NOME_FOLHA = 'Faturas do Agrupamento';
@@ -73,13 +81,15 @@ function setup() {
     .filter(f => /^(Folha|Sheet)\d+$/.test(f.getName()) && f.getLastRow() === 0)
     .forEach(f => ss.deleteSheet(f));
 
-  if (!props.getProperty('PIN')) {
-    props.setProperty('PIN', String(Math.floor(100000 + Math.random() * 900000)));
-  }
+  ['PIN', 'PIN_TESOURARIA'].forEach(chave => {
+    if (!props.getProperty(chave)) props.setProperty(chave, String(Math.floor(100000 + Math.random() * 900000)));
+  });
 
   console.log('Pasta na Drive: ' + pasta.getUrl());
   console.log('Folha de cálculo: ' + ss.getUrl());
-  console.log('PIN: ' + props.getProperty('PIN') + '  (podes mudá-lo em Propriedades do script)');
+  console.log('PIN dos dirigentes: ' + props.getProperty('PIN'));
+  console.log('PIN da tesouraria: ' + props.getProperty('PIN_TESOURARIA'));
+  console.log('(Podes mudar os PINs em Definições do projeto > Propriedades do script)');
 }
 
 /** Faz uma submissão de teste para confirmar que está tudo bem configurado. */
@@ -123,13 +133,18 @@ function doPost(e) {
     if (pinBloqueado()) {
       return resposta({ ok: false, erro: 'Demasiadas tentativas com PIN errado. Tenta daqui a 10 minutos.' });
     }
-    if (!pinCorreto(pedido.pin)) {
+    const acao = String(pedido.acao || '');
+    const tesouraria = acao.indexOf('tesouraria.') === 0;
+    if (!pinCorreto(pedido.pin, tesouraria ? 'PIN_TESOURARIA' : 'PIN')) {
       registarFalhaPin();
       return resposta({ ok: false, codigo: 'PIN', erro: 'PIN errado.' });
     }
 
-    if (pedido.acao === 'verificarPin') return resposta({ ok: true });
-    if (pedido.acao === 'submeter') return resposta(submeter(pedido));
+    if (acao === 'verificarPin' || acao === 'tesouraria.verificarPin') return resposta({ ok: true });
+    if (acao === 'submeter') return resposta(submeter(pedido));
+    if (acao === 'tesouraria.listar') return resposta(tesourariaListar());
+    if (acao === 'tesouraria.foto') return resposta(tesourariaFoto(pedido));
+    if (acao === 'tesouraria.marcar') return resposta(tesourariaMarcar(pedido));
     return resposta({ ok: false, erro: 'Ação desconhecida.' });
   } catch (err) {
     if (err instanceof ErroValidacao) return resposta({ ok: false, erro: err.message });
@@ -146,8 +161,8 @@ function resposta(obj) {
 // PIN
 // ---------------------------------------------------------------------------
 
-function pinCorreto(pin) {
-  const esperado = PropertiesService.getScriptProperties().getProperty('PIN');
+function pinCorreto(pin, chave) {
+  const esperado = PropertiesService.getScriptProperties().getProperty(chave);
   return !!esperado && String(pin || '').trim() === esperado.trim();
 }
 
@@ -206,6 +221,9 @@ function submeter(p) {
       texto(d.descricao),
       d.valor,
       texto(d.nif),
+      '',
+      'Por tratar',
+      '',
       '',
     ]);
     folha.getRange(folha.getLastRow(), COL_FATURA).setRichTextValue(
@@ -296,8 +314,12 @@ function anoLetivo(data) {
 function obterFolhaAno(ss, ano) {
   const existente = ss.getSheetByName(ano);
   if (existente) {
-    const cabecalho = existente.getRange(1, 1, 1, existente.getLastColumn()).getValues()[0];
-    if (cabecalho.join('|') === CABECALHO.join('|')) return existente;
+    const largura = existente.getLastColumn();
+    const cabecalho = existente.getRange(1, 1, 1, largura).getValues()[0];
+    if (cabecalho.every((c, i) => c === CABECALHO[i])) {
+      if (largura < CABECALHO.length) acrescentarColunas(existente, largura);
+      return existente;
+    }
     // Aba criada com uma versão antiga das colunas: arquiva-a e cria uma nova
     let sufixo = ' (antigo)';
     for (let n = 2; ss.getSheetByName(ano + sufixo); n++) sufixo = ' (antigo ' + n + ')';
@@ -314,6 +336,7 @@ function obterFolhaAno(ss, ano) {
   folha.getRange('C2:C').setNumberFormat('dd/mm/yyyy');
   folha.getRange(COL_VALOR + '2:' + COL_VALOR).setNumberFormat('#,##0.00 "€"');
   folha.getRange('L2:L').setNumberFormat('@');
+  formatarColunasReembolso(folha);
   folha.hideColumns(1);
   folha.setColumnWidth(7, 220);
   folha.setColumnWidth(10, 280);
@@ -325,6 +348,23 @@ function obterFolhaAno(ss, ano) {
   resumo.setColumnWidth(5, 180);
 
   return folha;
+}
+
+/** Acrescenta a uma aba existente as colunas que foram adicionadas depois de ela ser criada. */
+function acrescentarColunas(folha, largura) {
+  const novas = CABECALHO.slice(largura);
+  folha.getRange(1, largura + 1, 1, novas.length).setValues([novas])
+    .setFontWeight('bold').setBackground('#e8f0e8');
+  const n = folha.getLastRow() - 1;
+  if (largura < COL_REEMBOLSO && n > 0) folha.getRange(2, COL_REEMBOLSO, n, 1).setValue('Por tratar');
+  formatarColunasReembolso(folha);
+}
+
+function formatarColunasReembolso(folha) {
+  const regra = lista => SpreadsheetApp.newDataValidation().requireValueInList(lista, true).build();
+  folha.getRange(2, COL_REEMBOLSO, folha.getMaxRows() - 1, 1).setDataValidation(regra(ESTADOS_REEMBOLSO));
+  folha.getRange(2, COL_REEMBOLSO + 1, folha.getMaxRows() - 1, 1).setDataValidation(regra(FORMAS_REEMBOLSO));
+  folha.getRange(2, COL_REEMBOLSO + 2, folha.getMaxRows() - 1, 1).setNumberFormat('dd/mm/yyyy hh:mm');
 }
 
 /** Tabela de totais e nº de faturas por categoria, a começar na coluna `col`. */
@@ -365,4 +405,149 @@ function idJaExiste(folha, id) {
   const n = folha.getLastRow() - 1;
   if (n < 1) return false;
   return folha.getRange(2, 1, n, 1).getValues().some(l => l[0] === id);
+}
+
+// ---------------------------------------------------------------------------
+// Tesouraria
+// ---------------------------------------------------------------------------
+
+const COL = {};
+CABECALHO.forEach((c, i) => { COL[c] = i; });
+
+/** Faturas por tratar (mais antigas primeiro) e as últimas já tratadas. */
+function tesourariaListar() {
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
+  const pendentes = [];
+  const tratadas = [];
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    ss.getSheets().map(f => f.getName()).filter(nome => /^\d{4}-\d{2}$/.test(nome)).forEach(ano => {
+      const folha = obterFolhaAno(ss, ano); // acrescenta as colunas de reembolso se faltarem
+      const n = folha.getLastRow() - 1;
+      if (n < 1) return;
+      const valores = folha.getRange(2, 1, n, CABECALHO.length).getValues();
+      const links = folha.getRange(2, COL_FATURA, n, 1).getRichTextValues();
+      valores.forEach((l, i) => {
+        if (!l[COL['ID']]) return;
+        const fatura = linhaParaFatura(l, links[i][0], ano);
+        (fatura.reembolso === 'Por tratar' ? pendentes : tratadas).push(fatura);
+      });
+    });
+  } finally {
+    lock.releaseLock();
+  }
+
+  pendentes.sort((a, b) => a.ordem - b.ordem);
+  tratadas.sort((a, b) => b.ordemTratada - a.ordemTratada);
+  return {
+    ok: true,
+    pendentes,
+    tratadas: tratadas.slice(0, MAX_TRATADAS),
+    totalPendente: Math.round(pendentes.reduce((s, f) => s + f.valor, 0) * 100) / 100,
+  };
+}
+
+function linhaParaFatura(l, link, ano) {
+  const data = v => (v instanceof Date ? Utilities.formatDate(v, FUSO, 'dd/MM/yyyy') : '');
+  const ms = v => (v instanceof Date ? v.getTime() : 0);
+  const url = link ? link.getLinkUrl() || '' : '';
+  const m = /\/d\/([A-Za-z0-9_-]+)/.exec(url);
+  const estado = String(l[COL['Reembolso']] || '');
+  return {
+    id: String(l[COL['ID']]),
+    ano,
+    dataFatura: data(l[COL['Data da fatura']]),
+    ordem: ms(l[COL['Data da fatura']]) || ms(l[COL['Data de carregamento']]),
+    pagoPor: String(l[COL['Pago por']]),
+    seccao: String(l[COL['Secção']]),
+    seccaoOutro: String(l[COL['Detalhe secção (Outros)']]),
+    atividade: String(l[COL['Atividade']]),
+    tipoDespesa: String(l[COL['Tipo de despesa']]),
+    tipoOutro: String(l[COL['Detalhe tipo (Outros)']]),
+    descricao: String(l[COL['Descrição']]),
+    valor: Number(l[COL['Valor (€)']]) || 0,
+    url,
+    fileId: m ? m[1] : '',
+    reembolso: ESTADOS_REEMBOLSO.indexOf(estado) === -1 ? 'Por tratar' : estado,
+    forma: String(l[COL['Forma de reembolso']] || ''),
+    tratadaEm: data(l[COL['Tratada em']]),
+    ordemTratada: ms(l[COL['Tratada em']]),
+  };
+}
+
+/** Devolve a imagem da fatura (ou uma miniatura, no caso de PDF/HEIC). */
+function tesourariaFoto(p) {
+  const fileId = String(p.fileId || '');
+  if (!/^[A-Za-z0-9_-]{10,}$/.test(fileId)) throw new ErroValidacao('Fatura não encontrada.');
+  let ficheiro;
+  try {
+    ficheiro = DriveApp.getFileById(fileId);
+  } catch (err) {
+    throw new ErroValidacao('A foto desta fatura já não existe na Drive.');
+  }
+  if (!estaNaPastaDasFaturas(ficheiro)) throw new ErroValidacao('Fatura não encontrada.');
+
+  const mime = ficheiro.getMimeType();
+  const resultado = { ok: true, pdf: mime === 'application/pdf', url: ficheiro.getUrl() };
+  if (['image/jpeg', 'image/png', 'image/webp'].indexOf(mime) !== -1) {
+    resultado.mimeType = mime;
+    resultado.base64 = Utilities.base64Encode(ficheiro.getBlob().getBytes());
+  } else {
+    try {
+      const mini = ficheiro.getThumbnail();
+      if (mini) {
+        resultado.mimeType = mini.getContentType();
+        resultado.base64 = Utilities.base64Encode(mini.getBytes());
+      }
+    } catch (err) {
+      // Sem miniatura: a app mostra só o link para abrir o ficheiro
+    }
+  }
+  return resultado;
+}
+
+function estaNaPastaDasFaturas(ficheiro) {
+  const raiz = PropertiesService.getScriptProperties().getProperty('PASTA_ID');
+  const pais = ficheiro.getParents();
+  while (pais.hasNext()) {
+    const pai = pais.next();
+    if (pai.getId() === raiz) return true;
+    const avos = pai.getParents();
+    while (avos.hasNext()) if (avos.next().getId() === raiz) return true;
+  }
+  return false;
+}
+
+function tesourariaMarcar(p) {
+  const estado = String(p.estado || '');
+  if (ESTADOS_REEMBOLSO.indexOf(estado) === -1) throw new ErroValidacao('Opção inválida.');
+  const forma = estado === 'Reembolsado' ? String(p.forma || '') : '';
+  if (estado === 'Reembolsado' && FORMAS_REEMBOLSO.indexOf(forma) === -1) {
+    throw new ErroValidacao('Indique como foi feito o reembolso.');
+  }
+  const ano = String(p.ano || '');
+  const id = String(p.id || '');
+  if (!/^\d{4}-\d{2}$/.test(ano) || !id) throw new ErroValidacao('Fatura não encontrada.');
+
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const folha = ss.getSheetByName(ano);
+    const n = folha ? folha.getLastRow() - 1 : 0;
+    if (n < 1) throw new ErroValidacao('Fatura não encontrada.');
+    const linha = folha.getRange(2, 1, n, 1).getValues().findIndex(l => String(l[0]) === id);
+    if (linha === -1) throw new ErroValidacao('Fatura não encontrada. Pode ter sido apagada da folha.');
+    folha.getRange(linha + 2, COL_REEMBOLSO, 1, 3).setValues([[
+      estado,
+      forma,
+      estado === 'Por tratar' ? '' : new Date(),
+    ]]);
+    SpreadsheetApp.flush();
+    return { ok: true };
+  } finally {
+    lock.releaseLock();
+  }
 }
