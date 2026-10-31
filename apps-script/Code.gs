@@ -139,17 +139,22 @@ function prepararFolhas(ss) {
   let pessoas = ss.getSheetByName(FOLHA_PESSOAS);
   if (!pessoas) {
     pessoas = ss.insertSheet(FOLHA_PESSOAS);
-    cabecalhoVerde(pessoas.getRange('A1:C1').setValues([['Nome', 'Secção', 'Ativo']]));
     pessoas.setFrozenRows(1);
-    pessoas.getRange('A1').setNote(
-      'Escreve aqui os chefes (um por linha), a secção de cada um e "Sim" em Ativo.\n' +
-      'Quem sair do agrupamento: muda Ativo para "Não" (não apagues a linha).'
+    pessoas.getRange('C2:C').setDataValidation(
+      SpreadsheetApp.newDataValidation().requireValueInList(['Sim', 'Não'], true).build()
     );
-    const lista = l => SpreadsheetApp.newDataValidation().requireValueInList(l, true).build();
-    pessoas.getRange('B2:B').setDataValidation(lista(SECCOES));
-    pessoas.getRange('C2:C').setDataValidation(lista(['Sim', 'Não']));
     pessoas.setColumnWidth(1, 200);
+    pessoas.setColumnWidth(2, 260);
   }
+  // Também atualiza abas criadas quando só se podia ter uma secção por pessoa
+  cabecalhoVerde(pessoas.getRange('A1:C1').setValues([['Nome', 'Secções', 'Ativo']]));
+  pessoas.getRange('B2:B').clearDataValidations();
+  pessoas.getRange('A1').setNote(
+    'Escreve aqui os chefes (um por linha), a(s) secção(ões) de cada um e "Sim" em Ativo.\n' +
+    'Quem está em mais que uma secção: separa por vírgulas, ex.: "Lobitos, Exploradores".\n' +
+    'Todos podem também registar movimentos do Agrupamento.\n' +
+    'Quem sair do agrupamento: muda Ativo para "Não" (não apagues a linha).'
+  );
 
   let saldos = ss.getSheetByName(FOLHA_SALDOS);
   if (!saldos) {
@@ -309,8 +314,15 @@ function lerPessoas(ss) {
   const n = folha.getLastRow() - 1;
   if (n < 1) return [];
   return folha.getRange(2, 1, n, 3).getValues()
-    .filter(l => String(l[0]).trim() && SECCOES.indexOf(String(l[1]).trim()) !== -1 && String(l[2]).trim() !== 'Não')
-    .map(l => ({ nome: String(l[0]).trim(), seccao: String(l[1]).trim() }));
+    .filter(l => String(l[0]).trim() && String(l[2]).trim() !== 'Não')
+    .map(l => ({ nome: String(l[0]).trim(), seccoes: lerSeccoes(l[1]) }))
+    .filter(p => p.seccoes.length);
+}
+
+/** "Lobitos, Exploradores" -> ['Lobitos', 'Exploradores'] (aceita vírgulas, ";", "/" ou " e "). */
+function lerSeccoes(texto) {
+  const pedidas = String(texto || '').split(/[,;\/]|\s+e\s+/i).map(s => s.trim().toLowerCase());
+  return SECCOES.filter(s => pedidas.indexOf(s.toLowerCase()) !== -1);
 }
 
 function lerMovimentos(ss) {
@@ -382,9 +394,9 @@ function obterPessoa(ss, nome) {
   return p;
 }
 
-/** Um chefe trabalha com a sua secção e com o Agrupamento. */
+/** Um chefe trabalha com a(s) sua(s) secção(ões) e com o Agrupamento. */
 function seccoesDe(pessoa) {
-  return pessoa.seccao === 'Agrupamento' ? ['Agrupamento'] : [pessoa.seccao, 'Agrupamento'];
+  return pessoa.seccoes.filter(s => s !== 'Agrupamento').concat('Agrupamento');
 }
 
 // ---------------------------------------------------------------------------

@@ -601,8 +601,10 @@ $('btn-tentar').addEventListener('click', arrancar);
 
 function escolherPessoa() {
   const porSeccao = {};
-  estado.pessoas.forEach(p => { (porSeccao[p.seccao] = porSeccao[p.seccao] || []).push(p); });
-  $('lista-pessoas').innerHTML = Object.keys(porSeccao).map(s => `
+  // Quem está em várias secções aparece em cada uma delas
+  estado.pessoas.forEach(p => p.seccoes.forEach(s => { (porSeccao[s] = porSeccao[s] || []).push(p); }));
+  const ordem = ['Lobitos', 'Exploradores', 'Pioneiros', 'Caminheiros', 'Agrupamento'];
+  $('lista-pessoas').innerHTML = ordem.filter(s => porSeccao[s]).map(s => `
     <h3>${escapar(s)}</h3>
     <div class="pessoas">${porSeccao[s].map(p => `<button type="button" data-pessoa="${escapar(p.nome)}">${escapar(p.nome)}</button>`).join('')}</div>`
   ).join('');
@@ -749,7 +751,7 @@ function abrirFormulario(tipo) {
 
 function pessoasDaSeccao(seccao) {
   // Dinheiro do Agrupamento pode estar com qualquer chefe; o de uma secção, com os chefes dessa secção
-  return estado.pessoas.filter(x => seccao === 'Agrupamento' || x.seccao === seccao || x.seccao === 'Agrupamento');
+  return estado.pessoas.filter(x => seccao === 'Agrupamento' || x.seccoes.includes(seccao) || x.seccoes.includes('Agrupamento'));
 }
 
 function aoMudarSeccao() {

@@ -31,7 +31,7 @@ Tudo é um **movimento de dinheiro**, e cada chefe tem um **saldo por secção**
 
 \* Só conta depois de o **tesoureiro confirmar**.
 
-Cada chefe trabalha com a sua secção e com o Agrupamento. O fundo de cada secção (e o do Agrupamento)
+Cada chefe trabalha com a(s) sua(s) secção(ões) e com o Agrupamento. O fundo de cada secção (e o do Agrupamento)
 é guardado pelo tesoureiro; os reembolsos saem do fundo da secção a que o dinheiro pertence.
 
 Na app dos chefes há também **Contas de uma atividade**: o que entrou (em dinheiro e eletrónico), o que se gastou,
@@ -50,7 +50,8 @@ Na conta Google do agrupamento, em <https://script.google.com>, no projeto que j
    Pode ser corrido mais vezes sem estragar nada.
 3. **Implementar → Gerir implementações → ✏️ → Versão: Nova versão → Implementar.** (O URL mantém-se.)
 4. Na folha **Contas do Agrupamento**:
-   - aba **Pessoas**: um chefe por linha, com a secção e `Sim` em *Ativo*.
+   - aba **Pessoas**: um chefe por linha, com a(s) secção(ões) e `Sim` em *Ativo*.
+     Quem está em mais que uma secção: separa por vírgulas, ex.: `Lobitos, Exploradores`.
      Quem sair: muda *Ativo* para `Não` (não apagues a linha, por causa do histórico);
    - aba **Fundos**: na coluna amarela *Saldo inicial*, quanto tem hoje cada fundo.
 
