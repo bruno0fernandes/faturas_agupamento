@@ -1,6 +1,6 @@
 {
-  "name": "Faturas do Agrupamento",
-  "short_name": "Faturas",
+  "name": "Contas do Agrupamento",
+  "short_name": "Contas",
   "lang": "pt-PT",
   "start_url": "./",
   "scope": "./",

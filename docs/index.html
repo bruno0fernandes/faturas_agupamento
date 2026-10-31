@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Faturas do Agrupamento</title>
+  <title>Contas do Agrupamento</title>
   <meta name="theme-color" content="#2f6b3a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Faturas">
+  <meta name="apple-mobile-web-app-title" content="Contas">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -16,13 +16,14 @@
       --verde-escuro: #234f2b;
       --verde-claro: #e8f0e8;
       --fundo: #f5f6f4;
-      --cartao: #ffffff;
       --texto: #1d211e;
       --suave: #5d665f;
       --borda: #cfd5d0;
       --erro: #b3261e;
       --erro-fundo: #fdecea;
+      --aviso: #7a5600;
       --aviso-fundo: #fff4d6;
+      --vermelho: #b3261e;
     }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
@@ -40,11 +41,14 @@
       padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
       font-weight: 600;
       font-size: 19px;
+      display: flex; align-items: center; gap: 10px;
     }
+    header button { background: none; border: none; color: #fff; font-size: 26px; padding: 0 6px 0 0; line-height: 1; }
     main { max-width: 520px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
-    .ecra[hidden] { display: none; }
-    .cartao { background: var(--cartao); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .ecra[hidden], [hidden] { display: none !important; }
+    .cartao { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
     h2 { font-size: 20px; margin: 0 0 12px; }
+    h3 { font-size: 17px; margin: 18px 0 8px; color: var(--suave); text-transform: uppercase; letter-spacing: .04em; }
     label, .rotulo { display: block; font-weight: 600; margin-bottom: 6px; }
     .opcional { font-weight: 400; color: var(--suave); }
     .ajuda { color: var(--suave); font-size: 14px; margin: 6px 0 0; }
@@ -63,6 +67,7 @@
       appearance: none;
       min-height: 48px;
     }
+    textarea { resize: vertical; min-height: 70px; }
     select {
       padding-right: 40px;
       background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%235d665f' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
@@ -91,22 +96,59 @@
     .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .link { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 15px; padding: 12px; display: block; margin: 8px auto 0; }
 
-    .seccoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .seccoes input { position: absolute; opacity: 0; pointer-events: none; }
-    .seccoes label {
+    /* Escolhas em botões (rádio) */
+    .opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .opcoes.uma { grid-template-columns: 1fr; }
+    .opcoes input { position: absolute; opacity: 0; pointer-events: none; }
+    .opcoes label {
       margin: 0; font-weight: 500;
       display: flex; align-items: center; justify-content: center; text-align: center;
       min-height: 50px; padding: 8px;
       border: 1.5px solid var(--borda); border-radius: 10px; background: #fff;
     }
-    .seccoes input:checked + label { border-color: var(--verde); background: var(--verde); color: #fff; font-weight: 600; }
-    .seccoes input:focus-visible + label { box-shadow: 0 0 0 3px var(--verde-claro); }
-    .seccoes.invalido label { border-color: var(--erro); }
+    .opcoes input:checked + label { border-color: var(--verde); background: var(--verde); color: #fff; font-weight: 600; }
+    .opcoes input:focus-visible + label { box-shadow: 0 0 0 3px var(--verde-claro); }
+    .opcoes.invalido label { border-color: var(--erro); }
 
-    .foto-vazia {
-      border: 2px dashed var(--borda); border-radius: 12px; padding: 14px;
-      text-align: center; color: var(--suave);
+    /* Quem és */
+    .pessoas { display: grid; gap: 8px; }
+    .pessoas button { min-height: 54px; border-radius: 12px; border: 1.5px solid var(--borda); background: #fff; font-size: 18px; font-weight: 600; text-align: left; padding: 10px 16px; }
+    .pessoas button:active { background: var(--verde-claro); }
+
+    /* Saldos */
+    .ola { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .ola b { font-size: 20px; }
+    .ola button { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 14px; padding: 4px; }
+    .saldo { background: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border-left: 6px solid var(--borda); }
+    .saldo.tem { border-left-color: var(--verde); }
+    .saldo.deve { border-left-color: var(--vermelho); }
+    .saldo .rot { color: var(--suave); font-size: 15px; }
+    .saldo .num { font-size: 28px; font-weight: 800; }
+    .saldo.deve .num { color: var(--vermelho); }
+    .saldo .pend { margin-top: 8px; font-size: 14px; background: var(--aviso-fundo); color: var(--aviso); padding: 6px 10px; border-radius: 8px; }
+
+    .acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .acao {
+      min-height: 96px; border-radius: 14px; border: none; background: var(--verde); color: #fff;
+      font-size: 16px; font-weight: 600; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     }
+    .acao:active { background: var(--verde-escuro); }
+    .acao .ic { font-size: 28px; line-height: 1; }
+
+    /* Movimentos */
+    .mov { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+    .mov-topo { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
+    .mov-det { color: var(--suave); font-size: 14px; margin-top: 2px; word-break: break-word; }
+    .pos { color: var(--verde); }
+    .neg { color: var(--vermelho); }
+    .etiqueta { display: inline-block; font-size: 13px; padding: 2px 8px; border-radius: 6px; margin-top: 6px; background: var(--aviso-fundo); color: var(--aviso); }
+    .etiqueta.recusado { background: var(--erro-fundo); color: var(--erro); }
+    .mov .anular { background: none; border: 1px solid var(--borda); border-radius: 8px; padding: 6px 10px; font-size: 14px; margin-top: 8px; color: var(--suave); }
+    .mov .anular.armado { border-color: var(--erro); color: var(--erro); font-weight: 600; }
+    .vazio { color: var(--suave); text-align: center; padding: 12px; }
+
+    /* Foto */
+    .foto-vazia { border: 2px dashed var(--borda); border-radius: 12px; padding: 14px; text-align: center; color: var(--suave); }
     .foto-vazia.invalido { border-color: var(--erro); }
     .foto-preview { text-align: center; }
     .foto-preview img { max-width: 100%; max-height: 260px; border-radius: 10px; display: block; margin: 0 auto 10px; }
@@ -115,7 +157,7 @@
 
     .alerta { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
     .alerta-erro { background: var(--erro-fundo); color: var(--erro); }
-    .alerta-aviso { background: var(--aviso-fundo); color: #6b4e00; }
+    .alerta-aviso { background: var(--aviso-fundo); color: var(--aviso); }
 
     .resumo { width: 100%; border-collapse: collapse; }
     .resumo th { text-align: left; font-weight: 500; color: var(--suave); padding: 8px 10px 8px 0; vertical-align: top; width: 38%; }
@@ -125,27 +167,30 @@
     .resumo-foto { max-width: 100%; max-height: 180px; border-radius: 10px; display: block; margin: 0 auto 12px; }
 
     .sucesso { text-align: center; padding: 28px 16px; }
-    .sucesso .visto {
-      width: 72px; height: 72px; border-radius: 50%; background: var(--verde);
-      color: #fff; font-size: 40px; line-height: 72px; margin: 0 auto 16px;
-    }
+    .visto { width: 72px; height: 72px; border-radius: 50%; background: var(--verde); color: #fff; font-size: 40px; line-height: 72px; margin: 0 auto 16px; }
+
+    /* Relatório */
+    .linha-rel { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid #eceeec; }
+    .linha-rel:first-child { border-top: none; }
+    .linha-rel .sub { color: var(--suave); font-size: 14px; }
+    .total-rel { display: flex; justify-content: space-between; font-weight: 700; font-size: 19px; padding-top: 10px; }
+    .resultado { text-align: center; font-size: 15px; color: var(--suave); }
+    .resultado .num { font-size: 32px; font-weight: 800; display: block; }
 
     .carregar {
       position: fixed; inset: 0; background: rgba(255,255,255,.85);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 16px; font-weight: 600; z-index: 10;
     }
-    .carregar[hidden] { display: none; }
-    .roda {
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 4px solid var(--verde-claro); border-top-color: var(--verde);
-      animation: girar .9s linear infinite;
-    }
+    .roda { width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--verde-claro); border-top-color: var(--verde); animation: girar .9s linear infinite; }
     @keyframes girar { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <header>Faturas do Agrupamento</header>
+  <header>
+    <button type="button" id="btn-voltar-topo" aria-label="Voltar" hidden>‹</button>
+    <span>Contas do Agrupamento</span>
+  </header>
 
   <main>
     <!-- PIN -->
@@ -154,19 +199,56 @@
         <h2>Entrar</h2>
         <div class="campo">
           <label for="pin">PIN do agrupamento</label>
-          <input id="pin" type="password" inputmode="numeric" autocomplete="off" required>
+          <input id="pin" type="password" inputmode="numeric" autocomplete="off">
           <p id="erro-pin" class="erro-campo" hidden></p>
         </div>
         <div class="botoes"><button class="btn" type="submit">Entrar</button></div>
       </form>
     </section>
 
-    <!-- Formulário -->
-    <section id="ecra-form" class="ecra" hidden>
-      <form id="form-fatura" novalidate>
-        <div id="erro-geral" class="alerta alerta-erro" hidden></div>
+    <!-- Quem és -->
+    <section id="ecra-quem" class="ecra" hidden>
+      <div class="cartao">
+        <h2>Quem és?</h2>
+        <div id="lista-pessoas"></div>
+        <p id="sem-pessoas" class="ajuda" hidden>Ainda não há chefes registados. Pede a quem gere a aplicação para os adicionar na aba "Pessoas" da folha de cálculo.</p>
+      </div>
+    </section>
 
-        <div class="cartao">
+    <!-- Erro de ligação -->
+    <section id="ecra-erro" class="ecra" hidden>
+      <div class="cartao">
+        <h2>Não foi possível ligar</h2>
+        <p id="erro-texto">Verifica a internet e tenta outra vez.</p>
+      </div>
+      <button class="btn" type="button" id="btn-tentar">Tentar outra vez</button>
+    </section>
+
+    <!-- Início -->
+    <section id="ecra-inicio" class="ecra" hidden>
+      <div class="ola"><span>Olá, <b id="nome-pessoa"></b></span><button type="button" id="btn-trocar-pessoa">Não és tu?</button></div>
+      <div id="saldos"></div>
+
+      <div class="acoes">
+        <button type="button" class="acao" data-tipo="Entrada"><span class="ic">💰</span>Recebi dinheiro</button>
+        <button type="button" class="acao" data-tipo="Despesa"><span class="ic">🧾</span>Paguei uma despesa</button>
+        <button type="button" class="acao" data-tipo="Entrega ao fundo"><span class="ic">🏦</span>Entreguei ao fundo</button>
+        <button type="button" class="acao" data-tipo="Passagem entre chefes"><span class="ic">🤝</span>Passei dinheiro a outro chefe</button>
+      </div>
+      <button type="button" class="btn btn-sec" id="btn-atividades">📊 Contas de uma atividade</button>
+
+      <h3>Os teus últimos movimentos</h3>
+      <div id="movimentos"></div>
+      <button type="button" class="link" id="btn-sair">Sair (esquecer PIN)</button>
+    </section>
+
+    <!-- Formulário de movimento -->
+    <section id="ecra-form" class="ecra" hidden>
+      <form id="form-mov" novalidate>
+        <h2 id="form-titulo"></h2>
+        <p id="form-ajuda" class="alerta alerta-aviso" hidden></p>
+
+        <div class="cartao" data-campo="foto">
           <div class="campo">
             <span class="rotulo">Foto da fatura</span>
             <div id="foto-vazia" class="foto-vazia">
@@ -197,26 +279,56 @@
             <p id="erro-valor" class="erro-campo" hidden></p>
           </div>
 
-          <div class="campo">
-            <span class="rotulo">Secção</span>
-            <div id="seccoes" class="seccoes" role="radiogroup"></div>
-            <p id="erro-seccao" class="erro-campo" hidden></p>
+          <div class="campo" data-campo="seccao" id="campo-seccao">
+            <span class="rotulo">Dinheiro de que secção?</span>
+            <div id="seccoes" class="opcoes" role="radiogroup"></div>
           </div>
 
-          <div class="campo" id="campo-outro" hidden>
-            <label for="seccao-outro">Qual?</label>
-            <input id="seccao-outro" type="text" maxlength="200" placeholder="Ex.: Direção, Festa de Natal…">
-            <p id="erro-seccao-outro" class="erro-campo" hidden></p>
+          <div class="campo" data-campo="dequem">
+            <label for="de-quem">De quem recebeste?</label>
+            <input id="de-quem" type="text" maxlength="200" placeholder="Ex.: Rui (pagamento do acampamento)">
+            <p id="erro-de-quem" class="erro-campo" hidden></p>
           </div>
 
-          <div class="campo">
-            <label for="atividade">Nome da atividade</label>
-            <input id="atividade" type="text" maxlength="200" list="atividades-recentes" autocomplete="off" placeholder="Ex.: Acampamento de Natal">
-            <datalist id="atividades-recentes"></datalist>
-            <p id="erro-atividade" class="erro-campo" hidden></p>
+          <div class="campo" data-campo="para">
+            <label for="para">A quem passaste o dinheiro?</label>
+            <select id="para" required></select>
+            <p id="erro-para" class="erro-campo" hidden></p>
           </div>
 
-          <div class="campo">
+          <div class="campo" data-campo="pagocom">
+            <span class="rotulo">Com que dinheiro pagaste?</span>
+            <div id="pago-com" class="opcoes uma" role="radiogroup">
+              <input type="radio" name="pagoCom" id="pago-eu" value="eu" checked><label for="pago-eu">Com dinheiro que tenho comigo ou do meu bolso</label>
+              <input type="radio" name="pagoCom" id="pago-agr" value="agrupamento"><label for="pago-agr">Com o cartão ou a conta do agrupamento</label>
+            </div>
+          </div>
+
+          <div class="campo" data-campo="forma">
+            <span class="rotulo" id="rotulo-forma">Como?</span>
+            <div id="formas" class="opcoes" role="radiogroup">
+              <input type="radio" name="forma" id="forma-din" value="Dinheiro"><label for="forma-din" id="lbl-forma-din"></label>
+              <input type="radio" name="forma" id="forma-ele" value="Eletrónico"><label for="forma-ele" id="lbl-forma-ele"></label>
+            </div>
+            <p id="erro-forma" class="erro-campo" hidden></p>
+          </div>
+
+          <div class="campo" data-campo="ficoucom">
+            <label for="ficou-com">Com quem ficou o dinheiro?</label>
+            <select id="ficou-com"></select>
+            <p class="ajuda">Se foi por MB Way, é a pessoa que o recebeu na sua conta.</p>
+          </div>
+        </div>
+
+        <div class="cartao">
+          <div class="campo" data-campo="atividade">
+            <label for="atividade">Atividade <span class="opcional">(opcional)</span></label>
+            <input id="atividade" type="text" maxlength="200" list="atividades-sugestoes" autocomplete="off" placeholder="Ex.: Acampamento de Natal">
+            <datalist id="atividades-sugestoes"></datalist>
+            <p class="ajuda">Usa sempre o mesmo nome para a mesma atividade, para as contas saírem juntas.</p>
+          </div>
+
+          <div class="campo" data-campo="tipo">
             <label for="tipo-despesa">Tipo de despesa</label>
             <select id="tipo-despesa" required></select>
             <p id="erro-tipo" class="erro-campo" hidden></p>
@@ -228,36 +340,26 @@
             <p id="erro-tipo-outro" class="erro-campo" hidden></p>
           </div>
 
-          <div class="campo">
+          <div class="campo" data-campo="descricao">
             <label for="descricao">Descrição <span class="opcional">(opcional)</span></label>
-            <textarea id="descricao" maxlength="1000" placeholder="Notas sobre o gasto (o que se comprou, para quê…)"></textarea>
-          </div>
-        </div>
-
-        <div class="cartao">
-          <div class="campo">
-            <label for="pago-por">Quem pagou</label>
-            <input id="pago-por" type="text" maxlength="100" autocomplete="name" placeholder="Nome">
-            <p id="erro-pago-por" class="erro-campo" hidden></p>
+            <textarea id="descricao" maxlength="1000" placeholder="Notas (o que foi, para quê…)"></textarea>
           </div>
 
-          <div class="campo">
-            <label for="data-fatura">Data da fatura</label>
-            <input id="data-fatura" type="date">
+          <div class="campo" data-campo="data">
+            <label for="data">Data</label>
+            <input id="data" type="date">
             <p id="erro-data" class="erro-campo" hidden></p>
           </div>
 
-          <div class="campo">
-            <label for="nif">NIF do emissor <span class="opcional">(opcional)</span></label>
+          <div class="campo" data-campo="nif">
+            <label for="nif">NIF do emissor da fatura <span class="opcional">(opcional)</span></label>
             <input id="nif" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="9 dígitos">
-            <p class="ajuda">O NIF de quem passou a fatura (loja, restaurante…).</p>
             <p id="erro-nif" class="erro-campo" hidden></p>
           </div>
         </div>
 
         <button class="btn" type="submit">Continuar</button>
       </form>
-      <button type="button" class="link" id="btn-sair">Sair (esquecer PIN)</button>
     </section>
 
     <!-- Confirmação -->
@@ -269,7 +371,7 @@
         <table class="resumo"><tbody id="conf-tabela"></tbody></table>
       </div>
       <div class="botoes">
-        <button class="btn" type="button" id="btn-enviar">Enviar</button>
+        <button class="btn" type="button" id="btn-enviar">Registar</button>
         <button class="btn btn-sec" type="button" id="btn-corrigir">Corrigir</button>
       </div>
     </section>
@@ -278,10 +380,27 @@
     <section id="ecra-sucesso" class="ecra" hidden>
       <div class="cartao sucesso">
         <div class="visto">✓</div>
-        <h2>Fatura registada!</h2>
+        <h2>Registado!</h2>
         <p id="sucesso-texto" class="ajuda"></p>
       </div>
-      <div class="botoes"><button class="btn" type="button" id="btn-outra">Submeter outra fatura</button></div>
+      <div class="botoes"><button class="btn" type="button" id="btn-inicio">Voltar ao início</button></div>
+    </section>
+
+    <!-- Contas de uma atividade -->
+    <section id="ecra-atividade" class="ecra" hidden>
+      <div class="cartao">
+        <h2>Contas de uma atividade</h2>
+        <div class="campo" id="rel-campo-seccao">
+          <span class="rotulo">Secção</span>
+          <div id="rel-seccoes" class="opcoes" role="radiogroup"></div>
+        </div>
+        <div class="campo">
+          <label for="rel-atividade">Atividade</label>
+          <select id="rel-atividade"></select>
+          <p id="rel-sem" class="ajuda" hidden>Ainda não há movimentos com atividade nesta secção.</p>
+        </div>
+      </div>
+      <div id="relatorio"></div>
     </section>
   </main>
 
@@ -294,29 +413,76 @@
 // Endereço da app web do Apps Script (Implementar > Gerir implementações > URL)
 const URL_API = 'https://script.google.com/macros/s/AKfycbzHBgDbiCpj2ZLZ7plhkmDwpihKm0AEIQ_GxLmFsGJDmmtiMdn1XzRBTk3qLo5EljC9Ew/exec';
 
-const SECCOES = ['Agrupamento', 'Lobitos', 'Exploradores', 'Pioneiros', 'Caminheiros', 'Outros'];
-const TIPOS_DESPESA = [
-  'Alimentação', 'Combustível', 'Material de desgaste', 'Papelaria', 'Aluguer',
-  'Portagens', 'Transportes', 'Material de limpeza', 'Material de campo', 'Outros',
-];
-const MAX_ATIVIDADES_RECENTES = 8;
 const LADO_MAX_IMAGEM = 1600;
 const QUALIDADE_JPEG = 0.75;
 const TAMANHO_MAX = 8 * 1024 * 1024;
+const AGRUPAMENTO = '__agrupamento__';
+
+const FORMULARIOS = {
+  'Entrada': {
+    titulo: '💰 Recebi dinheiro',
+    campos: ['seccao', 'dequem', 'forma', 'ficoucom', 'atividade', 'descricao', 'data'],
+    rotuloForma: 'Como te pagaram?',
+    formas: ['💵 Dinheiro vivo', '📱 MB Way / transferência'],
+  },
+  'Despesa': {
+    titulo: '🧾 Paguei uma despesa',
+    campos: ['foto', 'seccao', 'pagocom', 'forma', 'atividade', 'tipo', 'descricao', 'data', 'nif'],
+    rotuloForma: 'Como pagaste?',
+    formas: ['💵 Dinheiro vivo', '💳 Cartão / MB Way'],
+  },
+  'Entrega ao fundo': {
+    titulo: '🏦 Entreguei dinheiro ao fundo',
+    campos: ['seccao', 'forma', 'descricao', 'data'],
+    rotuloForma: 'Como entregaste?',
+    formas: ['💵 Em dinheiro', '🏦 Por transferência'],
+    ajuda: 'Regista aqui o dinheiro que deste ao tesoureiro. Ele vai confirmar que recebeu.',
+  },
+  'Passagem entre chefes': {
+    titulo: '🤝 Passei dinheiro a outro chefe',
+    campos: ['seccao', 'para', 'forma', 'descricao', 'data'],
+    rotuloForma: 'Como?',
+    formas: ['💵 Em dinheiro', '📱 MB Way / transferência'],
+  },
+};
+const ICONES = { 'Entrada': '💰', 'Despesa': '🧾', 'Entrega ao fundo': '🏦', 'Reembolso': '↩️', 'Passagem entre chefes': '🤝' };
 
 const $ = id => document.getElementById(id);
-const estado = { ficheiro: null, id: null, dados: null };
+const estado = { pessoas: [], tiposDespesa: [], painel: null, tipo: null, ficheiro: null, id: null, dados: null };
 
-// --- Armazenamento local (pode não existir em modo privado) ---------------
+// --- Utilitários --------------------------------------------------------------
 const guardado = {
   ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   escrever(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   apagar(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
 
-// --- Navegação --------------------------------------------------------------
+function escapar(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function euros(v) {
+  return Number(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function hojeISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function formatarData(iso) {
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function novoId() {
+  return crypto.randomUUID ? crypto.randomUUID()
+    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+}
+
 function mostrar(ecra) {
   document.querySelectorAll('.ecra').forEach(s => { s.hidden = s.id !== 'ecra-' + ecra; });
+  $('btn-voltar-topo').hidden = !['form', 'atividade', 'confirmar'].includes(ecra);
   window.scrollTo(0, 0);
 }
 
@@ -325,7 +491,10 @@ function aCarregar(texto) {
   if (texto) $('carregar-texto').textContent = texto;
 }
 
-// --- API --------------------------------------------------------------------
+function mensagemErro(e, porDefeito) {
+  return e.message && !/fetch|network|HTTP|Load failed/i.test(e.message) ? e.message : porDefeito;
+}
+
 async function api(corpo, tentativas = 1) {
   let ultimoErro;
   for (let i = 0; i < tentativas; i++) {
@@ -335,97 +504,34 @@ async function api(corpo, tentativas = 1) {
         method: 'POST',
         // text/plain evita o pedido "preflight" de CORS, que o Apps Script não suporta
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(corpo),
+        body: JSON.stringify({ ...corpo, pin: guardado.ler('pin') || $('pin').value.trim() }),
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      return await r.json();
+      const resposta = await r.json();
+      if (resposta.codigo === 'PIN') {
+        guardado.apagar('pin');
+        throw Object.assign(new Error('O PIN mudou. Pede o novo PIN e volta a entrar.'), { pin: true });
+      }
+      return resposta;
     } catch (e) {
+      if (e.pin) throw e;
       ultimoErro = e;
     }
   }
   throw ultimoErro;
 }
 
-// --- PIN --------------------------------------------------------------------
-$('form-pin').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const pin = $('pin').value.trim();
-  if (!pin) return erroCampo('pin', 'erro-pin', 'Escreve o PIN.');
-  aCarregar('A verificar…');
-  try {
-    const r = await api({ acao: 'verificarPin', pin });
-    if (!r.ok) return erroCampo('pin', 'erro-pin', r.erro);
-    guardado.escrever('pin', pin);
-    limparErro('pin', 'erro-pin');
-    // Se o PIN foi pedido a meio de um envio, volta à confirmação sem perder os dados
-    if (estado.dados && estado.ficheiro) mostrar('confirmar');
-    else iniciarFormulario();
-  } catch (e) {
-    erroCampo('pin', 'erro-pin', 'Sem ligação. Verifica a internet e tenta novamente.');
-  } finally {
-    aCarregar(null);
-  }
-});
-
-$('btn-sair').addEventListener('click', () => {
-  guardado.apagar('pin');
+function pedirPin(msg) {
   $('pin').value = '';
+  $('erro-pin').textContent = msg || '';
+  $('erro-pin').hidden = !msg;
   mostrar('pin');
-});
-
-// --- Formulário -------------------------------------------------------------
-SECCOES.forEach((s, i) => {
-  const id = 'seccao-' + i;
-  $('seccoes').insertAdjacentHTML('beforeend',
-    `<input type="radio" name="seccao" id="${id}" value="${s}"><label for="${id}">${s}</label>`);
-});
-$('seccoes').addEventListener('change', () => {
-  $('campo-outro').hidden = valorSeccao() !== 'Outros';
-  limparErro('seccoes', 'erro-seccao');
-});
-
-$('tipo-despesa').innerHTML = '<option value="" disabled selected>Escolhe…</option>' +
-  TIPOS_DESPESA.map(t => `<option value="${t}">${t}</option>`).join('');
-$('tipo-despesa').addEventListener('change', () => {
-  $('campo-tipo-outro').hidden = $('tipo-despesa').value !== 'Outros';
-  limparErro('tipo-despesa', 'erro-tipo');
-});
-
-// Sugere as últimas atividades usadas neste telemóvel (várias faturas da mesma atividade)
-function atividadesRecentes() {
-  try { return JSON.parse(guardado.ler('atividades') || '[]'); } catch (e) { return []; }
 }
 
-function guardarAtividade(nome) {
-  const lista = [nome, ...atividadesRecentes().filter(a => a !== nome)].slice(0, MAX_ATIVIDADES_RECENTES);
-  guardado.escrever('atividades', JSON.stringify(lista));
-}
-
-function valorSeccao() {
-  const sel = document.querySelector('input[name=seccao]:checked');
-  return sel ? sel.value : '';
-}
-
-function hojeISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function iniciarFormulario() {
-  $('form-fatura').reset();
-  limparFicheiro();
-  $('campo-outro').hidden = true;
-  $('campo-tipo-outro').hidden = true;
-  $('atividades-recentes').innerHTML = atividadesRecentes().map(a => `<option value="${escapar(a)}">`).join('');
-  $('pago-por').value = guardado.ler('pagoPor') || '';
-  $('data-fatura').value = hojeISO();
-  $('data-fatura').max = hojeISO();
-  document.querySelectorAll('.erro-campo').forEach(p => { p.hidden = true; });
-  document.querySelectorAll('.invalido').forEach(el => el.classList.remove('invalido'));
-  $('erro-geral').hidden = true;
-  estado.id = null;
-  estado.dados = null;
-  mostrar('form');
+function erroLigacao(e) {
+  if (e.pin) return pedirPin(e.message);
+  $('erro-texto').textContent = mensagemErro(e, 'Verifica a internet e tenta outra vez.');
+  mostrar('erro');
 }
 
 function erroCampo(campoId, erroId, msg) {
@@ -440,12 +546,241 @@ function limparErro(campoId, erroId) {
   $(erroId).hidden = true;
 }
 
-[['valor', 'erro-valor'], ['seccao-outro', 'erro-seccao-outro'], ['atividade', 'erro-atividade'],
- ['tipo-outro', 'erro-tipo-outro'],
- ['pago-por', 'erro-pago-por'], ['data-fatura', 'erro-data'], ['nif', 'erro-nif']]
-  .forEach(([c, e]) => $(c).addEventListener('input', () => limparErro(c, e)));
+function opcoesRadio(contentor, nome, valores, rotulos) {
+  $(contentor).innerHTML = valores.map((v, i) =>
+    `<input type="radio" name="${nome}" id="${nome}-${i}" value="${escapar(v)}"><label for="${nome}-${i}">${escapar((rotulos || valores)[i])}</label>`
+  ).join('');
+}
 
-// --- Foto -------------------------------------------------------------------
+function radio(nome) {
+  const sel = document.querySelector(`input[name="${nome}"]:checked`);
+  return sel ? sel.value : '';
+}
+
+function marcarRadio(nome, valor) {
+  document.querySelectorAll(`input[name="${nome}"]`).forEach(i => { i.checked = i.value === valor; });
+}
+
+// --- Arranque, PIN e pessoa -----------------------------------------------------
+async function arrancar() {
+  aCarregar('A carregar…');
+  try {
+    const r = await api({ acao: 'iniciar' }, 3);
+    if (!r.ok) throw new Error(r.erro);
+    estado.pessoas = r.pessoas;
+    estado.tiposDespesa = r.tiposDespesa;
+    const eu = guardado.ler('pessoa');
+    if (eu && r.pessoas.some(p => p.nome === eu)) await abrirInicio();
+    else escolherPessoa();
+  } catch (e) {
+    erroLigacao(e);
+  } finally {
+    aCarregar(null);
+  }
+}
+
+$('form-pin').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const pin = $('pin').value.trim();
+  if (!pin) return erroCampo('pin', 'erro-pin', 'Escreve o PIN.');
+  aCarregar('A verificar…');
+  try {
+    const r = await api({ acao: 'iniciar' });
+    if (!r.ok) throw new Error(r.erro);
+    guardado.escrever('pin', pin);
+    limparErro('pin', 'erro-pin');
+    await arrancar();
+  } catch (e) {
+    erroCampo('pin', 'erro-pin', e.pin ? 'PIN errado.' : mensagemErro(e, 'Sem ligação. Verifica a internet e tenta outra vez.'));
+  } finally {
+    aCarregar(null);
+  }
+});
+
+$('btn-tentar').addEventListener('click', arrancar);
+
+function escolherPessoa() {
+  const porSeccao = {};
+  estado.pessoas.forEach(p => { (porSeccao[p.seccao] = porSeccao[p.seccao] || []).push(p); });
+  $('lista-pessoas').innerHTML = Object.keys(porSeccao).map(s => `
+    <h3>${escapar(s)}</h3>
+    <div class="pessoas">${porSeccao[s].map(p => `<button type="button" data-pessoa="${escapar(p.nome)}">${escapar(p.nome)}</button>`).join('')}</div>`
+  ).join('');
+  $('sem-pessoas').hidden = estado.pessoas.length > 0;
+  mostrar('quem');
+}
+
+$('lista-pessoas').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-pessoa]');
+  if (!b) return;
+  guardado.escrever('pessoa', b.dataset.pessoa);
+  abrirInicio();
+});
+
+$('btn-trocar-pessoa').addEventListener('click', escolherPessoa);
+
+$('btn-sair').addEventListener('click', () => {
+  guardado.apagar('pin');
+  guardado.apagar('pessoa');
+  pedirPin();
+});
+
+// --- Início ---------------------------------------------------------------------
+async function abrirInicio() {
+  aCarregar('A carregar…');
+  try {
+    const r = await api({ acao: 'painel', pessoa: guardado.ler('pessoa') }, 3);
+    if (!r.ok) {
+      if (/Pessoa desconhecida/.test(r.erro)) { guardado.apagar('pessoa'); return escolherPessoa(); }
+      throw new Error(r.erro);
+    }
+    estado.painel = r;
+    desenharInicio();
+    mostrar('inicio');
+  } catch (e) {
+    erroLigacao(e);
+  } finally {
+    aCarregar(null);
+  }
+}
+
+function desenharInicio() {
+  const p = estado.painel;
+  $('nome-pessoa').textContent = p.pessoa.nome;
+
+  $('saldos').innerHTML = p.saldos.map(s => {
+    const pend = s.entregaPendente > 0
+      ? `<div class="pend">Entregaste ${euros(s.entregaPendente)} — à espera que o tesoureiro confirme.</div>` : '';
+    if (s.saldo > 0.005) {
+      return `<div class="saldo tem"><div class="rot">Tens contigo, dos ${escapar(s.seccao)}:</div><div class="num">${euros(s.saldo)}</div>${pend}</div>`;
+    }
+    if (s.saldo < -0.005) {
+      return `<div class="saldo deve"><div class="rot">O agrupamento deve-te (${escapar(s.seccao)}):</div><div class="num">${euros(-s.saldo)}</div>${pend}</div>`;
+    }
+    return `<div class="saldo"><div class="rot">${escapar(s.seccao)}</div><div><b>Contas acertadas ✓</b></div>${pend}</div>`;
+  }).join('').replace(/dos Agrupamento/g, 'do Agrupamento');
+
+  $('movimentos').innerHTML = p.movimentos.length ? p.movimentos.map(m => {
+    const eMeu = m.pessoa === p.pessoa.nome;
+    const sinal = eMeu ? (m.efeito >= 0 ? '+' : '−') : '';
+    const classe = eMeu ? (m.efeito >= 0 ? 'pos' : 'neg') : '';
+    const detalhes = [m.data, m.seccao, m.dePara, m.atividade, m.descricao].filter(Boolean);
+    if (!eMeu && m.pessoa) detalhes.push('Ficou com: ' + m.pessoa);
+    if (!m.pessoa && m.tipo === 'Entrada') detalhes.push('Para a conta do agrupamento');
+    let etiqueta = '';
+    if (m.estado === 'Por confirmar') etiqueta = '<span class="etiqueta">À espera do tesoureiro</span>';
+    if (m.estado === 'Recusado') etiqueta = '<span class="etiqueta recusado">Recusado pelo tesoureiro</span>';
+    return `<div class="mov">
+      <div class="mov-topo"><span>${ICONES[m.tipo] || ''} ${escapar(m.tipo)}</span><span class="${classe}">${sinal}${euros(m.valor)}</span></div>
+      <div class="mov-det">${detalhes.map(escapar).join(' · ')}</div>
+      ${etiqueta}
+      ${m.podeAnular ? `<button type="button" class="anular" data-anular="${escapar(m.id)}">Anular</button>` : ''}
+    </div>`;
+  }).join('') : '<div class="vazio">Ainda não registaste nada.</div>';
+}
+
+$('movimentos').addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-anular]');
+  if (!b) return;
+  // Pede um segundo toque para confirmar
+  if (!b.classList.contains('armado')) {
+    b.classList.add('armado');
+    b.textContent = 'Toca outra vez para anular';
+    return;
+  }
+  aCarregar('A anular…');
+  try {
+    const r = await api({ acao: 'anular', pessoa: guardado.ler('pessoa'), id: b.dataset.anular });
+    if (!r.ok) throw new Error(r.erro);
+    await abrirInicio();
+  } catch (e) {
+    erroLigacao(e);
+  } finally {
+    aCarregar(null);
+  }
+});
+
+$('btn-voltar-topo').addEventListener('click', () => {
+  if (!$('ecra-confirmar').hidden) return mostrar('form');
+  mostrar('inicio');
+});
+$('btn-inicio').addEventListener('click', abrirInicio);
+
+// --- Formulário de movimento ------------------------------------------------------
+$('tipo-despesa').addEventListener('change', () => {
+  $('campo-tipo-outro').hidden = $('tipo-despesa').value !== 'Outros';
+  limparErro('tipo-despesa', 'erro-tipo');
+});
+
+document.querySelectorAll('.acao').forEach(b => b.addEventListener('click', () => abrirFormulario(b.dataset.tipo)));
+
+function abrirFormulario(tipo) {
+  const cfg = FORMULARIOS[tipo];
+  const p = estado.painel;
+  estado.tipo = tipo;
+  $('form-mov').reset();
+  limparFicheiro();
+  document.querySelectorAll('#form-mov .erro-campo').forEach(e => { e.hidden = true; });
+  document.querySelectorAll('#form-mov .invalido').forEach(e => e.classList.remove('invalido'));
+
+  $('form-titulo').textContent = cfg.titulo;
+  $('form-ajuda').hidden = !cfg.ajuda;
+  $('form-ajuda').textContent = cfg.ajuda || '';
+  document.querySelectorAll('#form-mov [data-campo]').forEach(el => { el.hidden = !cfg.campos.includes(el.dataset.campo); });
+  $('campo-tipo-outro').hidden = true;
+
+  // Secção: a do chefe por defeito; só pergunta se houver escolha
+  opcoesRadio('seccoes', 'seccao', p.seccoes);
+  marcarRadio('seccao', p.seccoes[0]);
+  $('campo-seccao').hidden = p.seccoes.length < 2;
+
+  $('rotulo-forma').textContent = cfg.rotuloForma;
+  $('lbl-forma-din').textContent = cfg.formas[0];
+  $('lbl-forma-ele').textContent = cfg.formas[1];
+
+  $('tipo-despesa').innerHTML = '<option value="" disabled selected>Escolhe…</option>' +
+    estado.tiposDespesa.map(t => `<option value="${escapar(t)}">${escapar(t)}</option>`).join('');
+
+  $('data').value = hojeISO();
+  $('data').max = hojeISO();
+  aoMudarSeccao();
+  mostrar('form');
+}
+
+function pessoasDaSeccao(seccao) {
+  // Dinheiro do Agrupamento pode estar com qualquer chefe; o de uma secção, com os chefes dessa secção
+  return estado.pessoas.filter(x => seccao === 'Agrupamento' || x.seccao === seccao || x.seccao === 'Agrupamento');
+}
+
+function aoMudarSeccao() {
+  const p = estado.painel;
+  const seccao = radio('seccao');
+  const outros = pessoasDaSeccao(seccao).filter(x => x.nome !== p.pessoa.nome);
+
+  $('ficou-com').innerHTML = `<option value="${escapar(p.pessoa.nome)}">Comigo (${escapar(p.pessoa.nome)})</option>` +
+    outros.map(x => `<option value="${escapar(x.nome)}">${escapar(x.nome)}</option>`).join('') +
+    `<option value="${AGRUPAMENTO}">Conta do agrupamento (raro)</option>`;
+  $('para').innerHTML = '<option value="" disabled selected>Escolhe…</option>' +
+    outros.map(x => `<option value="${escapar(x.nome)}">${escapar(x.nome)}</option>`).join('');
+
+  $('atividades-sugestoes').innerHTML = ((p.atividades || {})[seccao] || [])
+    .map(a => `<option value="${escapar(a)}">`).join('');
+
+  // Na entrega, sugere entregar tudo o que tem consigo
+  if (estado.tipo === 'Entrega ao fundo') {
+    const s = p.saldos.find(x => x.seccao === seccao);
+    const disponivel = s ? Math.max(0, s.saldo - s.entregaPendente) : 0;
+    $('valor').value = disponivel > 0 ? disponivel.toFixed(2).replace('.', ',') : '';
+  }
+}
+$('seccoes').addEventListener('change', aoMudarSeccao);
+
+[['valor', 'erro-valor'], ['de-quem', 'erro-de-quem'], ['tipo-outro', 'erro-tipo-outro'],
+ ['data', 'erro-data'], ['nif', 'erro-nif']].forEach(([c, e]) => $(c).addEventListener('input', () => limparErro(c, e)));
+$('para').addEventListener('change', () => limparErro('para', 'erro-para'));
+$('formas').addEventListener('change', () => limparErro('formas', 'erro-forma'));
+
+// --- Foto -------------------------------------------------------------------------
 $('btn-camara').addEventListener('click', () => $('ficheiro-camara').click());
 $('btn-galeria').addEventListener('click', () => $('ficheiro-galeria').click());
 $('btn-trocar').addEventListener('click', () => $('ficheiro-galeria').click());
@@ -531,7 +866,7 @@ async function prepararFicheiro(f) {
   }
 }
 
-// --- Validação ----------------------------------------------------------------
+// --- Validação ----------------------------------------------------------------------
 function lerValor(texto) {
   let v = texto.replace(/[\s€]/g, '');
   if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
@@ -547,124 +882,118 @@ function nifValido(nif) {
   return (resto < 2 ? 0 : 11 - resto) === Number(nif[8]);
 }
 
-function formatarEuros(v) {
-  return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-}
-
-function formatarData(iso) {
-  const [a, m, d] = iso.split('-');
-  return `${d}/${m}/${a}`;
-}
-
 function validarFormulario() {
-  let ok = true;
+  const campos = FORMULARIOS[estado.tipo].campos;
+  const usa = c => campos.includes(c);
   let primeiro = null;
   const falha = (campo, erro, msg) => {
     erroCampo(campo, erro, msg);
     if (!primeiro) primeiro = $(campo);
-    ok = false;
   };
 
-  if (!estado.ficheiro) falha('foto-vazia', 'erro-foto', 'Falta a foto da fatura.');
+  if (usa('foto') && !estado.ficheiro) falha('foto-vazia', 'erro-foto', 'Falta a foto da fatura.');
 
   const valor = lerValor($('valor').value);
   if (!$('valor').value.trim()) falha('valor', 'erro-valor', 'Indica o valor.');
   else if (!(valor > 0)) falha('valor', 'erro-valor', 'Valor inválido. Ex.: 12,50');
   else if (valor > 100000) falha('valor', 'erro-valor', 'Valor demasiado alto.');
 
-  const seccao = valorSeccao();
-  if (!seccao) falha('seccoes', 'erro-seccao', 'Escolhe a secção.');
-  const seccaoOutro = $('seccao-outro').value.trim();
-  if (seccao === 'Outros' && !seccaoOutro) falha('seccao-outro', 'erro-seccao-outro', 'Descreve a secção.');
+  const deQuem = $('de-quem').value.trim();
+  if (usa('dequem') && !deQuem) falha('de-quem', 'erro-de-quem', 'Indica de quem recebeste.');
 
-  const atividade = $('atividade').value.trim();
-  if (!atividade) falha('atividade', 'erro-atividade', 'Indica o nome da atividade.');
+  const para = $('para').value;
+  if (usa('para') && !para) falha('para', 'erro-para', 'Escolhe a quem passaste o dinheiro.');
+
+  const forma = radio('forma');
+  if (!forma) falha('formas', 'erro-forma', 'Escolhe uma opção.');
 
   const tipoDespesa = $('tipo-despesa').value;
-  if (!tipoDespesa) falha('tipo-despesa', 'erro-tipo', 'Escolhe o tipo de despesa.');
   const tipoOutro = $('tipo-outro').value.trim();
-  if (tipoDespesa === 'Outros' && !tipoOutro) falha('tipo-outro', 'erro-tipo-outro', 'Especifica o tipo de despesa.');
+  if (usa('tipo') && !tipoDespesa) falha('tipo-despesa', 'erro-tipo', 'Escolhe o tipo de despesa.');
+  if (usa('tipo') && tipoDespesa === 'Outros' && !tipoOutro) falha('tipo-outro', 'erro-tipo-outro', 'Especifica o tipo de despesa.');
 
-  const pagoPor = $('pago-por').value.trim();
-  if (!pagoPor) falha('pago-por', 'erro-pago-por', 'Indica quem pagou.');
-
-  const dataFatura = $('data-fatura').value;
-  if (!dataFatura) falha('data-fatura', 'erro-data', 'Indica a data da fatura.');
-  else if (dataFatura > hojeISO()) falha('data-fatura', 'erro-data', 'A data não pode ser no futuro.');
+  const data = $('data').value;
+  if (!data) falha('data', 'erro-data', 'Indica a data.');
+  else if (data > hojeISO()) falha('data', 'erro-data', 'A data não pode ser no futuro.');
 
   const nif = $('nif').value.replace(/\s/g, '');
-  if (nif && !nifValido(nif)) falha('nif', 'erro-nif', 'NIF inválido. Confirma os 9 dígitos ou deixa em branco.');
+  if (usa('nif') && nif && !nifValido(nif)) falha('nif', 'erro-nif', 'NIF inválido. Confirma os 9 dígitos ou deixa em branco.');
 
-  if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  return ok ? { valor, seccao, seccaoOutro: seccao === 'Outros' ? seccaoOutro : '',
-    atividade, tipoDespesa, tipoOutro: tipoDespesa === 'Outros' ? tipoOutro : '',
-    descricao: $('descricao').value.trim(), pagoPor, dataFatura, nif } : null;
+  if (primeiro) {
+    primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return null;
+  }
+  return {
+    tipo: estado.tipo,
+    seccao: radio('seccao'),
+    valor,
+    forma,
+    data,
+    descricao: $('descricao').value.trim(),
+    atividade: usa('atividade') ? $('atividade').value.trim() : '',
+    deQuem: usa('dequem') ? deQuem : '',
+    ficouCom: usa('ficoucom') ? $('ficou-com').value : '',
+    para: usa('para') ? para : '',
+    pagoCom: usa('pagocom') ? radio('pagoCom') : '',
+    tipoDespesa: usa('tipo') ? tipoDespesa : '',
+    tipoOutro: usa('tipo') && tipoDespesa === 'Outros' ? tipoOutro : '',
+    nif: usa('nif') ? nif : '',
+  };
 }
 
-// --- Confirmação e envio -------------------------------------------------------
-$('form-fatura').addEventListener('submit', ev => {
+// --- Confirmação e envio ---------------------------------------------------------------
+$('form-mov').addEventListener('submit', ev => {
   ev.preventDefault();
-  $('erro-geral').hidden = true;
-  const dados = validarFormulario();
-  if (!dados) return;
-  estado.dados = dados;
+  const d = validarFormulario();
+  if (!d) return;
+  estado.dados = d;
   // O mesmo ID é reutilizado se o envio tiver de ser repetido, para não duplicar
-  estado.id = crypto.randomUUID ? crypto.randomUUID()
-    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+  estado.id = novoId();
 
+  const cfg = FORMULARIOS[d.tipo];
+  const formaTexto = d.forma === 'Dinheiro' ? cfg.formas[0] : cfg.formas[1];
   const linhas = [
-    ['Valor', `<span class="grande">${formatarEuros(dados.valor)}</span>`],
-    ['Secção', escapar(dados.seccao === 'Outros' ? 'Outros: ' + dados.seccaoOutro : dados.seccao)],
-    ['Atividade', escapar(dados.atividade)],
-    ['Tipo de despesa', escapar(dados.tipoDespesa === 'Outros' ? 'Outros: ' + dados.tipoOutro : dados.tipoDespesa)],
-    ['Quem pagou', escapar(dados.pagoPor)],
-    ['Data da fatura', formatarData(dados.dataFatura)],
+    ['', `<span class="grande">${euros(d.valor)}</span>`],
+    ['O quê', escapar(cfg.titulo.replace(/^\S+\s/, ''))],
+    ['Secção', escapar(d.seccao)],
   ];
-  if (dados.descricao) linhas.splice(4, 0, ['Descrição', escapar(dados.descricao)]);
-  if (dados.nif) linhas.push(['NIF do emissor', escapar(dados.nif)]);
-  if (estado.ficheiro.mimeType === 'application/pdf') linhas.push(['Ficheiro', 'PDF anexado']);
+  if (d.deQuem) linhas.push(['De quem', escapar(d.deQuem)]);
+  if (d.para) linhas.push(['Para', escapar(d.para)]);
+  if (d.pagoCom) linhas.push(['Pago com', d.pagoCom === 'eu' ? 'O meu dinheiro / dinheiro que tenho' : 'Cartão / conta do agrupamento']);
+  linhas.push(['Como', escapar(formaTexto)]);
+  if (d.ficouCom) linhas.push(['Ficou com', d.ficouCom === AGRUPAMENTO ? 'Conta do agrupamento' : escapar(d.ficouCom)]);
+  if (d.atividade) linhas.push(['Atividade', escapar(d.atividade)]);
+  if (d.tipoDespesa) linhas.push(['Tipo', escapar(d.tipoDespesa === 'Outros' ? 'Outros: ' + d.tipoOutro : d.tipoDespesa)]);
+  if (d.descricao) linhas.push(['Descrição', escapar(d.descricao)]);
+  linhas.push(['Data', formatarData(d.data)]);
+  if (d.nif) linhas.push(['NIF', escapar(d.nif)]);
+
   $('conf-tabela').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
-  $('conf-foto').hidden = !estado.ficheiro.preview;
-  if (estado.ficheiro.preview) $('conf-foto').src = estado.ficheiro.preview;
+  const preview = d.tipo === 'Despesa' && estado.ficheiro && estado.ficheiro.preview;
+  $('conf-foto').hidden = !preview;
+  if (preview) $('conf-foto').src = preview;
   $('erro-envio').hidden = true;
   mostrar('confirmar');
 });
 
-function escapar(s) {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
 $('btn-corrigir').addEventListener('click', () => mostrar('form'));
 
 $('btn-enviar').addEventListener('click', async () => {
-  const pin = guardado.ler('pin') || $('pin').value.trim();
-  aCarregar('A enviar…');
+  const d = estado.dados;
+  aCarregar('A registar…');
   $('btn-enviar').disabled = true;
   try {
-    const r = await api({
-      acao: 'submeter',
-      pin,
-      id: estado.id,
-      ...estado.dados,
-      ficheiro: { base64: estado.ficheiro.base64, mimeType: estado.ficheiro.mimeType },
-    }, 3);
-    if (r.codigo === 'PIN') {
-      guardado.apagar('pin');
-      $('pin').value = '';
-      mostrar('pin');
-      erroCampo('pin', 'erro-pin', 'O PIN mudou. Pede o novo PIN e volta a entrar — os dados da fatura mantêm-se.');
-      return;
-    }
+    const corpo = { acao: 'registar', id: estado.id, pessoa: guardado.ler('pessoa'), ...d };
+    if (d.tipo === 'Despesa') corpo.ficheiro = { base64: estado.ficheiro.base64, mimeType: estado.ficheiro.mimeType };
+    const r = await api(corpo, 3);
     if (!r.ok) throw new Error(r.erro);
-    guardado.escrever('pagoPor', estado.dados.pagoPor);
-    guardarAtividade(estado.dados.atividade);
-    $('sucesso-texto').textContent =
-      `${formatarEuros(estado.dados.valor)} — ${estado.dados.seccao}. Ficou guardada no ano letivo ${r.anoLetivo}.`;
+    $('sucesso-texto').textContent = r.estado === 'Por confirmar'
+      ? `${euros(d.valor)} — fica à espera que o tesoureiro confirme.`
+      : `${euros(d.valor)} — ${d.seccao}.`;
     mostrar('sucesso');
   } catch (e) {
-    $('erro-envio').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
-      ? e.message
-      : 'Não foi possível enviar. Verifica a internet e carrega em "Enviar" outra vez.';
+    if (e.pin) return pedirPin(e.message);
+    $('erro-envio').textContent = mensagemErro(e, 'Não foi possível registar. Verifica a internet e carrega em "Registar" outra vez.');
     $('erro-envio').hidden = false;
     window.scrollTo(0, 0);
   } finally {
@@ -673,20 +1002,91 @@ $('btn-enviar').addEventListener('click', async () => {
   }
 });
 
-$('btn-outra').addEventListener('click', iniciarFormulario);
+// --- Contas de uma atividade --------------------------------------------------------------
+$('btn-atividades').addEventListener('click', () => {
+  const p = estado.painel;
+  opcoesRadio('rel-seccoes', 'relSeccao', p.seccoes);
+  marcarRadio('relSeccao', p.seccoes[0]);
+  $('rel-campo-seccao').hidden = p.seccoes.length < 2;
+  preencherAtividades();
+  mostrar('atividade');
+});
 
-// --- Avisar antes de sair com dados por enviar --------------------------------
-window.addEventListener('beforeunload', ev => {
-  const porEnviar = !$('ecra-form').hidden || !$('ecra-confirmar').hidden;
-  if (porEnviar && (estado.ficheiro || $('valor').value || $('atividade').value)) {
-    ev.preventDefault();
-    ev.returnValue = '';
+function preencherAtividades() {
+  const lista = (estado.painel.atividades || {})[radio('relSeccao')] || [];
+  $('rel-atividade').innerHTML = '<option value="" disabled selected>Escolhe…</option>' +
+    lista.map(a => `<option value="${escapar(a)}">${escapar(a)}</option>`).join('');
+  $('rel-atividade').hidden = !lista.length;
+  $('rel-sem').hidden = lista.length > 0;
+  $('relatorio').innerHTML = '';
+}
+$('rel-seccoes').addEventListener('change', preencherAtividades);
+
+$('rel-atividade').addEventListener('change', async () => {
+  aCarregar('A calcular…');
+  try {
+    const r = await api({ acao: 'atividade', pessoa: guardado.ler('pessoa'), seccao: radio('relSeccao'), atividade: $('rel-atividade').value }, 3);
+    if (!r.ok) throw new Error(r.erro);
+    desenharRelatorio(r);
+  } catch (e) {
+    erroLigacao(e);
+  } finally {
+    aCarregar(null);
   }
 });
 
-// --- Arranque -------------------------------------------------------------------
-if (guardado.ler('pin')) iniciarFormulario();
-else mostrar('pin');
+function desenharRelatorio(r) {
+  const pend = x => (x.porConfirmar ? ' (por confirmar)' : '');
+  const entradas = r.entradas.map(x => `<div class="linha-rel"><div>${escapar(x.quem)}<div class="sub">${x.data} · ${x.forma === 'Dinheiro' ? 'dinheiro' : 'eletrónico'} · ficou com ${escapar(x.ficouCom)}${pend(x)}</div></div><b>${euros(x.valor)}</b></div>`).join('');
+  const despesas = r.despesas.map(x => `<div class="linha-rel"><div>${escapar(x.tipoDespesa)}${x.descricao ? ' — ' + escapar(x.descricao) : ''}<div class="sub">${x.data} · pago por ${escapar(x.quem)}${pend(x)}</div></div><b>${euros(x.valor)}</b></div>`).join('');
+  const lucro = r.resultado >= 0;
+  $('relatorio').innerHTML = `
+    <div class="cartao resultado">
+      ${lucro ? 'Sobrou' : 'Faltou (prejuízo)'}
+      <span class="num ${lucro ? 'pos' : 'neg'}">${euros(Math.abs(r.resultado))}</span>
+    </div>
+    <div class="cartao">
+      <h2>Entradas</h2>
+      ${entradas || '<div class="vazio">Nenhuma</div>'}
+      <div class="total-rel"><span>Total</span><span>${euros(r.totalEntradas)}</span></div>
+      <p class="ajuda">Em dinheiro: ${euros(r.entradasDinheiro)} · Eletrónico: ${euros(r.entradasEletronico)}</p>
+    </div>
+    <div class="cartao">
+      <h2>Despesas</h2>
+      ${despesas || '<div class="vazio">Nenhuma</div>'}
+      <div class="total-rel"><span>Total</span><span>${euros(r.totalDespesas)}</span></div>
+    </div>
+    <button type="button" class="btn" id="btn-partilhar">📤 Enviar estas contas</button>`;
+  $('btn-partilhar').addEventListener('click', () => partilharRelatorio(r));
+}
+
+async function partilharRelatorio(r) {
+  const linhas = [
+    `Contas: ${r.atividade} (${r.seccao})`,
+    '',
+    `ENTRADAS: ${euros(r.totalEntradas)} (dinheiro ${euros(r.entradasDinheiro)}, eletrónico ${euros(r.entradasEletronico)})`,
+    ...r.entradas.map(x => `- ${x.data} ${x.quem}: ${euros(x.valor)} (${x.forma === 'Dinheiro' ? 'dinheiro' : 'eletrónico'}, ficou com ${x.ficouCom})`),
+    '',
+    `DESPESAS: ${euros(r.totalDespesas)}`,
+    ...r.despesas.map(x => `- ${x.data} ${x.tipoDespesa}${x.descricao ? ' (' + x.descricao + ')' : ''}: ${euros(x.valor)} — pago por ${x.quem}`),
+    '',
+    `RESULTADO: ${r.resultado >= 0 ? 'sobrou' : 'faltou'} ${euros(Math.abs(r.resultado))}`,
+  ];
+  const texto = linhas.join('\n');
+  try {
+    if (navigator.share) await navigator.share({ text: texto });
+    else {
+      await navigator.clipboard.writeText(texto);
+      $('btn-partilhar').textContent = '✓ Copiado — cola no WhatsApp ou email';
+    }
+  } catch (e) {
+    // Partilha cancelada pelo utilizador
+  }
+}
+
+// --- Arranque -------------------------------------------------------------------------
+if (guardado.ler('pin')) arrancar();
+else pedirPin();
 </script>
 </body>
 </html>

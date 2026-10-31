@@ -61,26 +61,27 @@
     .botoes { display: grid; gap: 14px; }
 
     /* Separadores */
-    .separadores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .separadores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
     .separadores button {
-      min-height: 60px; border-radius: 12px; border: 3px solid var(--borda);
-      background: #fff; font-size: 19px; font-weight: 700; color: var(--suave);
+      min-height: 64px; border-radius: 12px; border: 3px solid var(--borda); padding: 4px;
+      background: #fff; font-size: 18px; font-weight: 700; color: var(--suave); line-height: 1.15;
     }
     .separadores button[aria-selected=true] { background: var(--verde); border-color: var(--verde); color: #fff; }
+    .separadores .num { display: inline-block; min-width: 26px; padding: 0 6px; border-radius: 13px; background: #c0392b; color: #fff; font-size: 16px; }
 
     .contagem { font-size: 20px; text-align: center; margin-bottom: 14px; color: var(--suave); }
     .contagem b { color: var(--texto); }
 
-    /* Fatura */
-    .valor-grande { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0 2px; }
-    .quem { font-size: 24px; text-align: center; margin-bottom: 16px; }
+    .quem { font-size: 23px; text-align: center; margin-bottom: 4px; }
+    .valor-grande { font-size: 44px; font-weight: 800; text-align: center; margin: 2px 0; }
+    .como { font-size: 21px; text-align: center; margin-bottom: 14px; color: var(--suave); }
     .detalhes { width: 100%; border-collapse: collapse; }
     .detalhes th { text-align: left; font-weight: 600; color: var(--suave); padding: 10px 12px 10px 0; vertical-align: top; width: 40%; font-size: 19px; }
     .detalhes td { padding: 10px 0; word-break: break-word; }
     .detalhes tr + tr th, .detalhes tr + tr td { border-top: 1px solid #e6e9e6; }
 
     .foto {
-      min-height: 160px; border-radius: 12px; background: #eceeec;
+      min-height: 120px; border-radius: 12px; background: #eceeec;
       display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
       color: var(--suave); text-align: center; padding: 10px; margin-bottom: 16px;
     }
@@ -91,20 +92,33 @@
     .pergunta { font-size: 24px; font-weight: 700; text-align: center; margin: 22px 0 14px; }
     .opcao {
       display: flex; align-items: center; gap: 14px; width: 100%;
-      min-height: 92px; padding: 14px 16px; margin-bottom: 14px;
+      min-height: 84px; padding: 14px 16px; margin-bottom: 14px;
       border-radius: 16px; border: 3px solid var(--verde);
-      background: #fff; color: var(--texto); text-align: left;
+      background: #fff; color: var(--texto); text-align: left; font-size: 22px; font-weight: 700;
     }
+    .opcao.nao { border-color: var(--borda); }
     .opcao:active { background: var(--verde-claro); }
-    .opcao .icone { font-size: 40px; line-height: 1; flex: none; width: 48px; text-align: center; }
-    .opcao b { display: block; font-size: 22px; }
-    .opcao span.sub { display: block; font-size: 18px; color: var(--suave); }
-    .saltar { margin-top: 6px; }
+    .opcao .icone { font-size: 36px; line-height: 1; flex: none; width: 48px; text-align: center; }
+
+    /* Acertos */
+    .acerto { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; border: 1px solid #dde2de; }
+    .acerto.deve { border-left: 8px solid #c0392b; }
+    .acerto.tem { border-left: 8px solid var(--verde); }
+    .acerto .frase { font-size: 22px; margin-bottom: 4px; }
+    .acerto .sub { font-size: 18px; color: var(--suave); margin-bottom: 14px; }
+    .acerto .opcao { min-height: 70px; margin-bottom: 10px; font-size: 20px; }
+
+    /* Resumo */
+    .fundo h2 { margin-bottom: 8px; }
+    .fundo .linha { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid #e6e9e6; font-size: 20px; }
+    .fundo .linha:first-of-type { border-top: none; }
+    .fundo .linha.total { font-weight: 800; font-size: 23px; border-top: 2px solid var(--texto); }
+    .fundo .ajuda { color: var(--suave); font-size: 16px; }
 
     /* Confirmação */
-    .confirmar-texto { font-size: 26px; text-align: center; margin: 8px 0 18px; }
+    .confirmar-texto { font-size: 24px; text-align: center; margin: 8px 0 18px; }
     .confirmar-opcao {
-      font-size: 26px; font-weight: 800; text-align: center;
+      font-size: 25px; font-weight: 800; text-align: center;
       background: var(--verde-claro); border-radius: 12px; padding: 16px; margin-bottom: 8px;
     }
 
@@ -113,11 +127,11 @@
       color: #fff; font-size: 58px; line-height: 96px; margin: 8px auto 16px; text-align: center;
     }
 
-    /* Já tratadas */
-    .tratada { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #dde2de; }
-    .tratada .linha1 { font-size: 22px; font-weight: 700; }
-    .tratada .estado { display: inline-block; margin: 6px 0 12px; padding: 4px 10px; border-radius: 8px; background: var(--verde-claro); font-size: 18px; font-weight: 600; }
-    .tratada .btn { min-height: 60px; font-size: 19px; }
+    /* Feitos */
+    .feito { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #dde2de; }
+    .feito .linha1 { font-size: 21px; font-weight: 700; }
+    .feito .estado { display: inline-block; margin: 6px 0 12px; padding: 4px 10px; border-radius: 8px; background: var(--verde-claro); font-size: 18px; font-weight: 600; }
+    .feito .btn { min-height: 60px; font-size: 19px; }
 
     .alerta { border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; background: var(--erro-fundo); color: var(--erro); font-weight: 600; }
 
@@ -129,13 +143,9 @@
     input:focus { outline: none; border-color: var(--verde); }
     label { display: block; font-weight: 700; margin-bottom: 10px; font-size: 22px; }
 
-    .link { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 17px; padding: 16px; display: block; margin: 20px auto 0; }
+    .link { background: none; border: none; color: var(--suave); text-decoration: underline; font-size: 18px; padding: 16px; display: block; margin: 16px auto 0; }
 
-    /* Foto em ecrã inteiro */
-    .ampliar {
-      position: fixed; inset: 0; background: #000; z-index: 20;
-      display: flex; flex-direction: column;
-    }
+    .ampliar { position: fixed; inset: 0; background: #000; z-index: 20; display: flex; flex-direction: column; }
     .ampliar .area { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; }
     .ampliar img { max-width: 100%; }
     .ampliar .btn { border-radius: 0; min-height: calc(80px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
@@ -145,11 +155,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 18px; font-weight: 700; font-size: 22px; z-index: 30;
     }
-    .roda {
-      width: 56px; height: 56px; border-radius: 50%;
-      border: 6px solid var(--verde-claro); border-top-color: var(--verde);
-      animation: girar .9s linear infinite;
-    }
+    .roda { width: 56px; height: 56px; border-radius: 50%; border: 6px solid var(--verde-claro); border-top-color: var(--verde); animation: girar .9s linear infinite; }
     @keyframes girar { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -167,10 +173,10 @@
       </form>
     </section>
 
-    <!-- Separadores -->
     <nav id="separadores" class="separadores" role="tablist" hidden>
-      <button type="button" role="tab" id="tab-pendentes" aria-selected="true">Por tratar</button>
-      <button type="button" role="tab" id="tab-tratadas" aria-selected="false">Já tratadas</button>
+      <button type="button" role="tab" id="tab-confirmar" data-ecra="confirmar">Confirmar<br><span class="num" id="num-confirmar"></span></button>
+      <button type="button" role="tab" id="tab-acertar" data-ecra="acertar">Acertar contas<br><span class="num" id="num-acertar"></span></button>
+      <button type="button" role="tab" id="tab-resumo" data-ecra="resumo">Quanto há</button>
     </nav>
 
     <!-- Erro de ligação -->
@@ -182,45 +188,53 @@
       <button class="btn" type="button" id="btn-tentar">Tentar outra vez</button>
     </section>
 
-    <!-- Fatura por tratar -->
-    <section id="ecra-fatura" class="ecra" hidden>
-      <div id="contagem" class="contagem"></div>
-      <div class="cartao">
-        <div id="foto" class="foto"></div>
-        <div id="f-valor" class="valor-grande"></div>
-        <div id="f-quem" class="quem"></div>
-        <table class="detalhes"><tbody id="f-detalhes"></tbody></table>
+    <!-- Confirmar: um pedido de cada vez -->
+    <section id="ecra-confirmar" class="ecra" hidden>
+      <div id="conf-vazio" hidden>
+        <div class="cartao centro">
+          <div class="visto">✓</div>
+          <h2>Não há nada para confirmar</h2>
+        </div>
       </div>
-
-      <div class="pergunta">Esta fatura foi…</div>
-      <button type="button" class="opcao" data-estado="Reembolsado" data-forma="Dinheiro">
-        <span class="icone">💶</span>
-        <span><b>Reembolsada em dinheiro</b><span class="sub">Entreguei o dinheiro em mão</span></span>
-      </button>
-      <button type="button" class="opcao" data-estado="Reembolsado" data-forma="Transferência">
-        <span class="icone">🏦</span>
-        <span><b>Reembolsada por transferência</b><span class="sub">Fiz uma transferência bancária</span></span>
-      </button>
-      <button type="button" class="opcao" data-estado="Sem reembolso" data-forma="">
-        <span class="icone">✅</span>
-        <span><b>Não precisa de reembolso</b><span class="sub">Foi paga com dinheiro do agrupamento</span></span>
-      </button>
-
-      <button type="button" class="btn btn-sec saltar" id="btn-saltar">Decidir mais tarde ➜</button>
+      <div id="conf-item">
+        <div id="conf-contagem" class="contagem"></div>
+        <div class="cartao">
+          <div id="foto" class="foto" hidden></div>
+          <div id="i-quem" class="quem"></div>
+          <div id="i-valor" class="valor-grande"></div>
+          <div id="i-como" class="como"></div>
+          <table class="detalhes"><tbody id="i-detalhes"></tbody></table>
+        </div>
+        <div id="i-pergunta" class="pergunta"></div>
+        <button type="button" class="opcao" id="btn-sim"><span class="icone">✅</span><span id="txt-sim"></span></button>
+        <button type="button" class="opcao nao" id="btn-nao"><span class="icone">❌</span><span id="txt-nao"></span></button>
+        <button type="button" class="btn btn-sec" id="btn-saltar">Decidir mais tarde ➜</button>
+      </div>
+      <button type="button" class="link" data-feitos>Enganei-me — ver o que já fiz</button>
     </section>
 
-    <!-- Nada por tratar -->
-    <section id="ecra-vazio" class="ecra" hidden>
-      <div class="cartao centro">
-        <div class="visto">✓</div>
-        <h2>Não há faturas por tratar</h2>
-        <p>Está tudo em dia.</p>
-      </div>
-      <button class="btn btn-sec" type="button" id="btn-atualizar">Ver se chegaram faturas novas</button>
+    <!-- Acertar contas com os chefes -->
+    <section id="ecra-acertar" class="ecra" hidden>
+      <p class="contagem">Dinheiro a pagar ou a receber de cada chefe.</p>
+      <div id="lista-acertos"></div>
+      <button type="button" class="link" data-feitos>Enganei-me — ver o que já fiz</button>
+    </section>
+
+    <!-- Resumo dos fundos -->
+    <section id="ecra-resumo" class="ecra" hidden>
+      <div id="lista-fundos"></div>
+      <button class="btn btn-sec" type="button" id="btn-atualizar">Atualizar</button>
+      <button type="button" class="link" id="btn-sair">Sair (esquecer o PIN neste aparelho)</button>
+    </section>
+
+    <!-- O que já fiz -->
+    <section id="ecra-feitos" class="ecra" hidden>
+      <p class="contagem">O que fez nos últimos dias. Se se enganou, pode desfazer aqui.</p>
+      <div id="lista-feitos"></div>
     </section>
 
     <!-- Confirmação -->
-    <section id="ecra-confirmar" class="ecra" hidden>
+    <section id="ecra-pergunta" class="ecra" hidden>
       <div class="cartao">
         <h2 class="centro">Confirma?</h2>
         <div id="c-texto" class="confirmar-texto"></div>
@@ -237,16 +251,8 @@
       <div class="cartao centro">
         <div class="visto">✓</div>
         <h2>Ficou registado</h2>
-        <p id="feito-texto"></p>
       </div>
-      <button class="btn" type="button" id="btn-seguinte">Ver a próxima fatura</button>
-    </section>
-
-    <!-- Já tratadas -->
-    <section id="ecra-tratadas" class="ecra" hidden>
-      <p class="contagem">As últimas faturas tratadas. Se se enganou, pode corrigir aqui.</p>
-      <div id="lista-tratadas"></div>
-      <button type="button" class="link" id="btn-sair">Sair (esquecer o PIN neste aparelho)</button>
+      <button class="btn" type="button" id="btn-continuar">Continuar</button>
     </section>
   </main>
 
@@ -261,15 +267,15 @@
   </div>
 
 <script>
-// Endereço da app web do Apps Script (o mesmo da app dos dirigentes)
+// Endereço da app web do Apps Script (o mesmo da app dos chefes)
 const URL_API = 'https://script.google.com/macros/s/AKfycbzHBgDbiCpj2ZLZ7plhkmDwpihKm0AEIQ_GxLmFsGJDmmtiMdn1XzRBTk3qLo5EljC9Ew/exec';
 
 const $ = id => document.getElementById(id);
 const estado = {
-  pendentes: [],
-  tratadas: [],
-  indice: 0,
-  acao: null,        // { fatura, estado, forma } à espera de confirmação
+  dados: null,       // resposta de tesouraria.listar
+  indice: 0,         // pedido a confirmar que está a ser mostrado
+  aba: 'confirmar',
+  acao: null,        // ação à espera de "Sim, confirmo"
   fotos: new Map(),  // fileId -> resposta do servidor
 };
 
@@ -285,15 +291,24 @@ function escapar(s) {
 }
 
 function euros(v) {
-  return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  return Number(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function novoId() {
+  return crypto.randomUUID ? crypto.randomUUID()
+    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+}
+
+function fundoDe(seccao) {
+  return seccao === 'Agrupamento' ? 'fundo do Agrupamento' : 'fundo dos ' + seccao;
 }
 
 function mostrar(ecra) {
   document.querySelectorAll('.ecra').forEach(s => { s.hidden = s.id !== 'ecra-' + ecra; });
-  $('separadores').hidden = ecra === 'pin' || ecra === 'confirmar';
-  const tratadas = ecra === 'tratadas';
-  $('tab-pendentes').setAttribute('aria-selected', String(!tratadas));
-  $('tab-tratadas').setAttribute('aria-selected', String(tratadas));
+  $('separadores').hidden = ['pin', 'pergunta', 'feito'].includes(ecra);
+  document.querySelectorAll('#separadores button').forEach(b => {
+    b.setAttribute('aria-selected', String(b.dataset.ecra === ecra));
+  });
   window.scrollTo(0, 0);
 }
 
@@ -327,7 +342,7 @@ async function api(corpo) {
   throw ultimoErro;
 }
 
-function tratarErro(e) {
+function tratarErro(e, texto) {
   if (e.pin) {
     $('pin').value = '';
     $('erro-pin').textContent = 'O PIN não está certo. Escreva-o outra vez.';
@@ -335,7 +350,8 @@ function tratarErro(e) {
     mostrar('pin');
     return;
   }
-  $('erro-texto').textContent = 'Verifique se tem internet e carregue no botão abaixo.';
+  $('erro-texto').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
+    ? e.message : (texto || 'Verifique se tem internet e carregue no botão abaixo.');
   mostrar('erro');
 }
 
@@ -354,8 +370,7 @@ $('form-pin').addEventListener('submit', async ev => {
   } catch (e) {
     if (e.pin) tratarErro(e);
     else {
-      $('erro-pin').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
-        ? e.message : 'Não foi possível ligar. Verifique a internet.';
+      $('erro-pin').textContent = 'Não foi possível ligar. Verifique a internet.';
       $('erro-pin').hidden = false;
     }
   } finally {
@@ -369,16 +384,19 @@ $('btn-sair').addEventListener('click', () => {
   mostrar('pin');
 });
 
-// --- Carregar faturas -----------------------------------------------------------
+// --- Carregar -------------------------------------------------------------------
 async function carregar() {
-  aCarregar('A carregar as faturas…');
+  aCarregar('A carregar…');
   try {
     const r = await api({ acao: 'tesouraria.listar' });
     if (!r.ok) throw new Error(r.erro);
-    estado.pendentes = r.pendentes;
-    estado.tratadas = r.tratadas;
-    estado.indice = 0;
-    mostrarPendente();
+    estado.dados = r;
+    if (estado.indice >= r.paraConfirmar.length) estado.indice = 0;
+    $('num-confirmar').textContent = r.paraConfirmar.length || '';
+    $('num-confirmar').hidden = !r.paraConfirmar.length;
+    $('num-acertar').textContent = r.acertos.length || '';
+    $('num-acertar').hidden = !r.acertos.length;
+    abrirAba(estado.aba);
   } catch (e) {
     tratarErro(e);
   } finally {
@@ -388,53 +406,76 @@ async function carregar() {
 
 $('btn-tentar').addEventListener('click', carregar);
 $('btn-atualizar').addEventListener('click', carregar);
+document.querySelectorAll('#separadores button').forEach(b => b.addEventListener('click', () => abrirAba(b.dataset.ecra)));
+document.querySelectorAll('[data-feitos]').forEach(b => b.addEventListener('click', mostrarFeitos));
 
-$('tab-pendentes').addEventListener('click', mostrarPendente);
-$('tab-tratadas').addEventListener('click', mostrarTratadas);
-
-// --- Fatura por tratar ----------------------------------------------------------
-function textoSeccao(f) { return f.seccao === 'Outros' && f.seccaoOutro ? 'Outros: ' + f.seccaoOutro : f.seccao; }
-function textoTipo(f) { return f.tipoDespesa === 'Outros' && f.tipoOutro ? 'Outros: ' + f.tipoOutro : f.tipoDespesa; }
-
-function mostrarPendente() {
-  const lista = estado.pendentes;
-  if (!lista.length) return mostrar('vazio');
-  if (estado.indice >= lista.length) estado.indice = 0;
-  const f = lista[estado.indice];
-  const total = lista.reduce((s, x) => s + x.valor, 0);
-
-  $('contagem').innerHTML = lista.length === 1
-    ? 'Falta <b>1 fatura</b>'
-    : `Fatura <b>${estado.indice + 1}</b> de <b>${lista.length}</b> · Total por tratar: <b>${euros(total)}</b>`;
-  $('f-valor').textContent = euros(f.valor);
-  $('f-quem').innerHTML = 'Pago por <b>' + escapar(f.pagoPor) + '</b>';
-  const linhas = [
-    ['Atividade', f.atividade],
-    ['Tipo', textoTipo(f)],
-    ['Secção', textoSeccao(f)],
-    ['Data', f.dataFatura],
-  ];
-  if (f.descricao) linhas.push(['Descrição', f.descricao]);
-  $('f-detalhes').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${escapar(v)}</td></tr>`).join('');
-  $('btn-saltar').hidden = lista.length < 2;
-
-  mostrar('fatura');
-  mostrarFoto(f);
+function abrirAba(aba) {
+  estado.aba = aba;
+  if (aba === 'confirmar') mostrarConfirmar();
+  if (aba === 'acertar') mostrarAcertos();
+  if (aba === 'resumo') mostrarResumo();
 }
 
-async function mostrarFoto(f) {
+// --- Confirmar ------------------------------------------------------------------
+const TEXTOS = {
+  'Entrega ao fundo': {
+    quem: m => `<b>${escapar(m.pessoa)}</b> diz que lhe entregou`,
+    pergunta: 'Recebeu este dinheiro?', sim: 'Sim, recebi', nao: 'Não recebi',
+  },
+  'Entrada': {
+    quem: m => `<b>${escapar(m.registadoPor)}</b> diz que entrou na conta do agrupamento`,
+    pergunta: 'O dinheiro entrou na conta?', sim: 'Sim, entrou', nao: 'Não entrou',
+  },
+  'Despesa': {
+    quem: m => `<b>${escapar(m.registadoPor)}</b> pagou com o cartão ou a conta do agrupamento`,
+    pergunta: 'Esta despesa está certa?', sim: 'Sim, está certa', nao: 'Não está certa',
+  },
+};
+
+function textoForma(m) {
+  return m.forma === 'Dinheiro' ? 'em dinheiro' : (m.tipo === 'Despesa' ? 'com cartão / MB Way' : 'por transferência');
+}
+
+function mostrarConfirmar() {
+  const lista = estado.dados.paraConfirmar;
+  $('conf-vazio').hidden = lista.length > 0;
+  $('conf-item').hidden = lista.length === 0;
+  mostrar('confirmar');
+  if (!lista.length) return;
+
+  const m = lista[estado.indice];
+  const t = TEXTOS[m.tipo] || TEXTOS['Entrega ao fundo'];
+  $('conf-contagem').innerHTML = lista.length === 1 ? 'Falta <b>1</b>' : `<b>${estado.indice + 1}</b> de <b>${lista.length}</b>`;
+  $('i-quem').innerHTML = t.quem(m);
+  $('i-valor').textContent = euros(m.valor);
+  $('i-como').textContent = textoForma(m);
+  const linhas = [['Fundo', m.seccao]];
+  if (m.tipo === 'Entrada' && m.dePara) linhas.push(['De quem', m.dePara.replace(/^De: /, '')]);
+  if (m.tipo === 'Despesa') linhas.push(['Tipo', m.tipoDespesa]);
+  if (m.atividade) linhas.push(['Atividade', m.atividade]);
+  if (m.descricao) linhas.push(['Descrição', m.descricao]);
+  linhas.push(['Data', m.data]);
+  $('i-detalhes').innerHTML = linhas.map(([k, v]) => `<tr><th>${k}</th><td>${escapar(v)}</td></tr>`).join('');
+  $('i-pergunta').textContent = t.pergunta;
+  $('txt-sim').textContent = t.sim;
+  $('txt-nao').textContent = t.nao;
+  $('btn-saltar').hidden = lista.length < 2;
+
+  $('foto').hidden = !m.fileId;
+  if (m.fileId) mostrarFoto(m);
+}
+
+async function mostrarFoto(m) {
   const caixa = $('foto');
-  if (!f.fileId) { caixa.innerHTML = 'Esta fatura não tem fotografia.'; return; }
   caixa.innerHTML = 'A carregar a fotografia…';
   try {
-    let foto = estado.fotos.get(f.fileId);
+    let foto = estado.fotos.get(m.fileId);
     if (!foto) {
-      foto = await api({ acao: 'tesouraria.foto', fileId: f.fileId });
+      foto = await api({ acao: 'tesouraria.foto', fileId: m.fileId });
       if (!foto.ok) throw new Error(foto.erro);
-      estado.fotos.set(f.fileId, foto);
+      estado.fotos.set(m.fileId, foto);
     }
-    // O tesoureiro pode ter passado para outra fatura entretanto
-    if (estado.pendentes[estado.indice] !== f || $('ecra-fatura').hidden) return;
+    if (estado.dados.paraConfirmar[estado.indice] !== m || $('ecra-confirmar').hidden) return;
     let html = '';
     if (foto.base64) {
       html += `<img id="foto-img" src="data:${foto.mimeType};base64,${foto.base64}" alt="Fotografia da fatura">`;
@@ -445,106 +486,150 @@ async function mostrarFoto(f) {
     }
     caixa.innerHTML = html;
     const img = $('foto-img');
-    if (img && !foto.pdf) img.addEventListener('click', () => ampliarFoto(img.src));
+    if (img && !foto.pdf) img.addEventListener('click', () => { $('ampliar-img').src = img.src; $('ampliar').hidden = false; });
   } catch (e) {
     if (e.pin) return tratarErro(e);
-    caixa.innerHTML = 'Não foi possível mostrar a fotografia.' +
-      (f.url ? `<a class="foto-link" href="${escapar(f.url)}" target="_blank" rel="noopener">Abrir na Google Drive</a>` : '');
+    caixa.innerHTML = 'Não foi possível mostrar a fotografia.';
   }
-}
-
-function ampliarFoto(src) {
-  $('ampliar-img').src = src;
-  $('ampliar').hidden = false;
 }
 $('btn-fechar-foto').addEventListener('click', () => { $('ampliar').hidden = true; });
 
 $('btn-saltar').addEventListener('click', () => {
-  estado.indice = (estado.indice + 1) % estado.pendentes.length;
-  mostrarPendente();
+  estado.indice = (estado.indice + 1) % estado.dados.paraConfirmar.length;
+  mostrarConfirmar();
 });
 
-document.querySelectorAll('.opcao').forEach(botao => {
-  botao.addEventListener('click', () => {
-    pedirConfirmacao(estado.pendentes[estado.indice], botao.dataset.estado, botao.dataset.forma);
+function pedirConfirmacaoMovimento(aceitar) {
+  const m = estado.dados.paraConfirmar[estado.indice];
+  const t = TEXTOS[m.tipo] || TEXTOS['Entrega ao fundo'];
+  perguntar({
+    texto: `${euros(m.valor)} — ${escapar(m.pessoa || m.registadoPor)}`,
+    opcao: aceitar ? t.sim : t.nao,
+    pedido: { acao: 'tesouraria.confirmar', id: m.id, aceitar },
+    depois: 'confirmar',
+  });
+}
+$('btn-sim').addEventListener('click', () => pedirConfirmacaoMovimento(true));
+$('btn-nao').addEventListener('click', () => pedirConfirmacaoMovimento(false));
+
+// --- Acertar contas -------------------------------------------------------------
+function mostrarAcertos() {
+  const lista = estado.dados.acertos;
+  $('lista-acertos').innerHTML = lista.length ? lista.map((a, i) => a.valor < 0 ? `
+    <div class="acerto deve">
+      <div class="frase">O agrupamento deve <b>${euros(-a.valor)}</b> a <b>${escapar(a.pessoa)}</b></div>
+      <div class="sub">${escapar(a.seccao)} — adiantou dinheiro</div>
+      <button type="button" class="opcao" data-acerto="${i}" data-forma="Dinheiro"><span class="icone">💶</span>Paguei em dinheiro</button>
+      <button type="button" class="opcao" data-acerto="${i}" data-forma="Eletrónico"><span class="icone">🏦</span>Paguei por transferência</button>
+    </div>` : `
+    <div class="acerto tem">
+      <div class="frase"><b>${escapar(a.pessoa)}</b> tem <b>${euros(a.valor)}</b> consigo</div>
+      <div class="sub">${escapar(a.seccao)} — ainda não lho entregou</div>
+      <button type="button" class="opcao" data-acerto="${i}" data-forma="Dinheiro"><span class="icone">💶</span>Recebi em dinheiro</button>
+      <button type="button" class="opcao" data-acerto="${i}" data-forma="Eletrónico"><span class="icone">🏦</span>Recebi por transferência</button>
+    </div>`).join('')
+    : '<div class="cartao centro"><div class="visto">✓</div><h2>As contas com os chefes estão todas acertadas</h2></div>';
+  mostrar('acertar');
+}
+
+$('lista-acertos').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-acerto]');
+  if (!b) return;
+  const a = estado.dados.acertos[Number(b.dataset.acerto)];
+  const dinheiro = b.dataset.forma === 'Dinheiro';
+  perguntar({
+    texto: a.valor < 0
+      ? `Pagou <b>${euros(-a.valor)}</b><br>a <b>${escapar(a.pessoa)}</b>`
+      : `Recebeu <b>${euros(a.valor)}</b><br>de <b>${escapar(a.pessoa)}</b>`,
+    opcao: dinheiro ? 'Em dinheiro' : 'Por transferência',
+    pedido: { acao: 'tesouraria.acertar', id: novoId(), pessoa: a.pessoa, seccao: a.seccao, valor: a.valor, forma: b.dataset.forma },
+    depois: 'acertar',
   });
 });
 
-// --- Confirmação ----------------------------------------------------------------
-function descricaoOpcao(estadoReembolso, forma) {
-  if (estadoReembolso === 'Reembolsado') return forma === 'Dinheiro' ? 'Reembolsada em dinheiro' : 'Reembolsada por transferência';
-  if (estadoReembolso === 'Sem reembolso') return 'Não precisa de reembolso';
-  return 'Voltar a pôr por tratar';
+// --- Resumo ---------------------------------------------------------------------
+function mostrarResumo() {
+  const fundos = estado.dados.resumo;
+  const linha = (rot, v, classe = '') => `<div class="linha ${classe}"><span>${rot}</span><b>${euros(v)}</b></div>`;
+  const total = fundos.reduce((s, f) => s + f.total, 0);
+  $('lista-fundos').innerHTML = fundos.map(f => `
+    <div class="cartao fundo">
+      <h2>${escapar(f.seccao)}</h2>
+      ${linha('No fundo (consigo)', f.noFundo)}
+      ${f.comChefes ? linha('Com os chefes', f.comChefes) : ''}
+      ${f.divida ? linha('Em dívida aos chefes', -f.divida) : ''}
+      ${linha('Total', f.total, 'total')}
+    </div>`).join('') + `
+    <div class="cartao fundo">
+      <h2>Agrupamento inteiro</h2>
+      ${linha('Total', total, 'total')}
+      <p class="ajuda">Soma de todos os fundos, contando o dinheiro com os chefes e o que se deve aos chefes.</p>
+    </div>`;
+  mostrar('resumo');
 }
 
-function pedirConfirmacao(fatura, estadoReembolso, forma) {
-  estado.acao = { fatura, estado: estadoReembolso, forma };
-  $('c-texto').innerHTML = `Fatura de <b>${euros(fatura.valor)}</b><br>paga por <b>${escapar(fatura.pagoPor)}</b>`;
-  $('c-opcao').textContent = descricaoOpcao(estadoReembolso, forma);
-  mostrar('confirmar');
+// --- O que já fiz (desfazer) ------------------------------------------------------
+function descricaoFeito(m) {
+  if (m.registadoPor === 'Tesouraria') {
+    return m.tipo === 'Reembolso'
+      ? `Pagou a ${m.pessoa} ${textoForma(m)}`
+      : `Recebeu de ${m.pessoa} ${textoForma(m)}`;
+  }
+  const t = TEXTOS[m.tipo] || TEXTOS['Entrega ao fundo'];
+  return (m.estado === 'Confirmado' ? t.sim : t.nao) + ` (${m.tipo === 'Entrega ao fundo' ? 'entrega de ' + m.pessoa : m.registadoPor})`;
 }
 
-$('btn-voltar').addEventListener('click', () => {
-  if (estado.acao && estado.acao.estado === 'Por tratar') mostrarTratadas();
-  else mostrarPendente();
+function mostrarFeitos() {
+  const lista = estado.dados.feitos;
+  $('lista-feitos').innerHTML = lista.length ? lista.map((m, i) => `
+    <div class="feito">
+      <div class="linha1">${euros(m.valor)} · ${escapar(m.seccao)}</div>
+      <div class="estado">${escapar(descricaoFeito(m))}</div>
+      <button type="button" class="btn btn-sec" data-desfazer="${i}">Enganei-me, desfazer</button>
+    </div>`).join('')
+    : '<div class="cartao centro">Ainda não fez nada.</div>';
+  mostrar('feitos');
+}
+
+$('lista-feitos').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-desfazer]');
+  if (!b) return;
+  const m = estado.dados.feitos[Number(b.dataset.desfazer)];
+  perguntar({
+    texto: `${euros(m.valor)}<br>${escapar(descricaoFeito(m))}`,
+    opcao: 'Desfazer',
+    pedido: { acao: 'tesouraria.desfazer', id: m.id },
+    depois: estado.aba,
+  });
 });
 
+// --- Confirmação genérica -----------------------------------------------------------
+function perguntar(acao) {
+  estado.acao = acao;
+  $('c-texto').innerHTML = acao.texto;
+  $('c-opcao').textContent = acao.opcao;
+  mostrar('pergunta');
+}
+
+$('btn-voltar').addEventListener('click', () => abrirAba(estado.aba));
+
 $('btn-confirmar').addEventListener('click', async () => {
-  const { fatura, estado: novoEstado, forma } = estado.acao;
+  const acao = estado.acao;
   aCarregar('A guardar…');
   try {
-    const r = await api({ acao: 'tesouraria.marcar', id: fatura.id, ano: fatura.ano, estado: novoEstado, forma });
+    const r = await api(acao.pedido);
     if (!r.ok) throw new Error(r.erro);
-
-    estado.pendentes = estado.pendentes.filter(f => f !== fatura);
-    estado.tratadas = estado.tratadas.filter(f => f !== fatura);
-    const atualizada = { ...fatura, reembolso: novoEstado, forma, tratadaEm: new Date().toLocaleDateString('pt-PT') };
-    if (novoEstado === 'Por tratar') {
-      estado.pendentes.push(atualizada);
-      estado.indice = estado.pendentes.length - 1;
-      $('feito-texto').textContent = 'A fatura voltou para "Por tratar".';
-      $('btn-seguinte').textContent = 'Ver as faturas por tratar';
-    } else {
-      estado.tratadas.unshift(atualizada);
-      if (estado.indice >= estado.pendentes.length) estado.indice = 0;
-      const faltam = estado.pendentes.length;
-      $('feito-texto').textContent = faltam === 0 ? 'Não há mais faturas por tratar.'
-        : faltam === 1 ? 'Falta 1 fatura.' : `Faltam ${faltam} faturas.`;
-      $('btn-seguinte').textContent = faltam === 0 ? 'Terminar' : 'Ver a próxima fatura';
-    }
+    estado.aba = acao.depois;
     estado.acao = null;
     mostrar('feito');
   } catch (e) {
-    if (e.pin) return tratarErro(e);
-    $('erro-texto').textContent = e.message && !/fetch|network|HTTP|Load failed/i.test(e.message)
-      ? e.message
-      : 'Não ficou guardado. Verifique se tem internet e tente outra vez.';
-    mostrar('erro');
+    tratarErro(e, 'Não ficou guardado. Verifique se tem internet e tente outra vez.');
   } finally {
     aCarregar(null);
   }
 });
 
-$('btn-seguinte').addEventListener('click', mostrarPendente);
-
-// --- Já tratadas ----------------------------------------------------------------
-function mostrarTratadas() {
-  const lista = estado.tratadas;
-  $('lista-tratadas').innerHTML = lista.length ? lista.map((f, i) => `
-    <div class="tratada">
-      <div class="linha1">${euros(f.valor)} · ${escapar(f.pagoPor)}</div>
-      <div>${escapar(f.atividade)} — ${escapar(textoTipo(f))}</div>
-      <div class="estado">${escapar(descricaoOpcao(f.reembolso, f.forma))}${f.tratadaEm ? ' em ' + escapar(f.tratadaEm) : ''}</div>
-      <button type="button" class="btn btn-sec" data-corrigir="${i}">Enganei-me, voltar a pôr por tratar</button>
-    </div>`).join('')
-    : '<div class="cartao centro">Ainda não há faturas tratadas.</div>';
-  mostrar('tratadas');
-}
-
-$('lista-tratadas').addEventListener('click', ev => {
-  const botao = ev.target.closest('[data-corrigir]');
-  if (botao) pedirConfirmacao(estado.tratadas[Number(botao.dataset.corrigir)], 'Por tratar', '');
-});
+$('btn-continuar').addEventListener('click', carregar);
 
 // --- Arranque -------------------------------------------------------------------
 if (guardado.ler('pinTesouraria')) carregar();
